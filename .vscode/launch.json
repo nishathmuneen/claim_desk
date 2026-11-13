@@ -1,0 +1,27 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "ClaimDesk (Chrome - Recommended)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "chrome"
+    },
+    {
+      "name": "ClaimDesk (Edge)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "edge",
+      "args": [
+        "--no-dds"
+      ]
+    },
+    {
+      "name": "ClaimDesk (Windows Desktop)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "windows"
+    }
+  ]
+}
+
