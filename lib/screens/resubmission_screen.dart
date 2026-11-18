@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/claim_desk_provider.dart';
 import '../models/expense_claim.dart';
+import '../widgets/document_picker_sheet.dart';
 
 class ResubmissionScreen extends StatefulWidget {
   const ResubmissionScreen({super.key});
@@ -119,12 +120,21 @@ class _ResubmissionScreenState extends State<ResubmissionScreen> {
                       ),
                     ),
                     TextButton(
-                      onPressed: () {
-                        setModalState(() {
-                          attachment = 'official_zatca_tax_invoice_signed.pdf';
-                        });
+                      onPressed: () async {
+                        final doc = await DocumentPickerSheet.show(
+                          context,
+                          title: 'Upload Corrected Invoice',
+                          subtitle: 'Provide revised ZATCA tax invoice with legible VAT amount',
+                          documentType: 'Receipt',
+                          allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
+                        );
+                        if (doc != null) {
+                          setModalState(() {
+                            attachment = doc.name;
+                          });
+                        }
                       },
-                      child: const Text('Change', style: TextStyle(color: AppTheme.primaryOrange, fontSize: 12)),
+                      child: const Text('Change / Scan', style: TextStyle(color: AppTheme.primaryOrange, fontSize: 12, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -162,20 +172,13 @@ class _ResubmissionScreenState extends State<ResubmissionScreen> {
                   label: const Text('Resubmit Line (Generates New Ref #)'),
                   onPressed: () {
                     final base = double.tryParse(amountCtrl.text) ?? line.baseAmount;
-                    final vat = (base * line.vatRatePercentage) / 100.0;
-                    final total = base + vat;
-
-                    final updatedLine = line.copyWith(
-                      invoiceNumber: invoiceCtrl.text.trim(),
-                      baseAmount: base,
-                      vatAmount: vat,
-                      totalAmount: total,
-                      attachmentName: attachment,
-                    );
 
                     context.read<ClaimDeskProvider>().resubmitRejectedLine(
                           originalClaimId: claimId,
-                          updatedLine: updatedLine,
+                          lineId: line.id,
+                          updatedBaseAmount: base,
+                          updatedInvoiceNumber: invoiceCtrl.text.trim(),
+                          updatedAttachmentName: attachment,
                         );
 
                     Navigator.pop(ctx);

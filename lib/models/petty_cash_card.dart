@@ -15,6 +15,9 @@ class PettyCashCard {
   final double monthlyLimit;
   final double currentBalance;
   final double spentAmount;
+  final double minimumThreshold;
+  final double singleTransactionCap;
+  final String? activeRefillStatus;
 
   const PettyCashCard({
     required this.cardNumber,
@@ -33,7 +36,12 @@ class PettyCashCard {
     required this.monthlyLimit,
     required this.currentBalance,
     required this.spentAmount,
+    this.minimumThreshold = 1000.0,
+    this.singleTransactionCap = 2000.0,
+    this.activeRefillStatus,
   });
+
+  bool get isLowBalance => currentBalance <= minimumThreshold;
 
   String get maskedCardNumber {
     if (cardNumber.length >= 4) {
@@ -42,5 +50,48 @@ class PettyCashCard {
     }
     return cardNumber;
   }
-}
 
+  PettyCashCard copyWith({
+    String? cardNumber,
+    String? cardholderName,
+    String? employeeId,
+    String? company,
+    String? division,
+    String? department,
+    String? designation,
+    String? costCenter,
+    String? iqama,
+    String? phone,
+    bool? isInactive,
+    DateTime? startDate,
+    DateTime? endDate,
+    double? monthlyLimit,
+    double? currentBalance,
+    double? spentAmount,
+    double? minimumThreshold,
+    double? singleTransactionCap,
+    String? activeRefillStatus,
+  }) {
+    return PettyCashCard(
+      cardNumber: cardNumber ?? this.cardNumber,
+      cardholderName: cardholderName ?? this.cardholderName,
+      employeeId: employeeId ?? this.employeeId,
+      company: company ?? this.company,
+      division: division ?? this.division,
+      department: department ?? this.department,
+      designation: designation ?? this.designation,
+      costCenter: costCenter ?? this.costCenter,
+      iqama: iqama ?? this.iqama,
+      phone: phone ?? this.phone,
+      isInactive: isInactive ?? this.isInactive,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      monthlyLimit: monthlyLimit ?? this.monthlyLimit,
+      currentBalance: currentBalance ?? this.currentBalance,
+      spentAmount: spentAmount ?? this.spentAmount,
+      minimumThreshold: minimumThreshold ?? this.minimumThreshold,
+      singleTransactionCap: singleTransactionCap ?? this.singleTransactionCap,
+      activeRefillStatus: activeRefillStatus ?? this.activeRefillStatus,
+    );
+  }
+}

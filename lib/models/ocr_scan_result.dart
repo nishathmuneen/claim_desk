@@ -9,6 +9,8 @@ class OcrScanResult {
   final bool isHighConfidence;
   final String category;
   final String sampleReceiptImage;
+  final String? justification;
+  final String? projectCostCenter;
 
   const OcrScanResult({
     required this.merchantName,
@@ -21,6 +23,7 @@ class OcrScanResult {
     required this.isHighConfidence,
     required this.category,
     required this.sampleReceiptImage,
+    this.justification,
+    this.projectCostCenter,
   });
 }
-

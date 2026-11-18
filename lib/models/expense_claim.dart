@@ -1,3 +1,6 @@
+import 'approval_stage.dart';
+import 'verified_attachment.dart';
+
 enum ClaimStatus {
   draft,
   submitted,
@@ -96,6 +99,14 @@ class ExpenseClaim {
   final DateTime updatedAt;
   final String? originalRefNumber;
   final List<String> auditTrail;
+  final List<ApprovalWorkflowStage> approvalStages;
+  final String? projectCode;
+  final String? glAccountCode;
+  final bool preFundedAuth;
+  final bool isZatcaVerified;
+  final List<VerifiedAttachment> verifiedAttachments;
+  final List<String> systemLogs;
+  final bool isRecallable;
 
   const ExpenseClaim({
     required this.id,
@@ -117,6 +128,14 @@ class ExpenseClaim {
     required this.updatedAt,
     this.originalRefNumber,
     required this.auditTrail,
+    this.approvalStages = const [],
+    this.projectCode,
+    this.glAccountCode,
+    this.preFundedAuth = true,
+    this.isZatcaVerified = true,
+    this.verifiedAttachments = const [],
+    this.systemLogs = const [],
+    this.isRecallable = true,
   });
 
   double get totalBaseAmount =>
@@ -154,6 +173,14 @@ class ExpenseClaim {
     DateTime? updatedAt,
     String? originalRefNumber,
     List<String>? auditTrail,
+    List<ApprovalWorkflowStage>? approvalStages,
+    String? projectCode,
+    String? glAccountCode,
+    bool? preFundedAuth,
+    bool? isZatcaVerified,
+    List<VerifiedAttachment>? verifiedAttachments,
+    List<String>? systemLogs,
+    bool? isRecallable,
   }) {
     return ExpenseClaim(
       id: id ?? this.id,
@@ -175,7 +202,14 @@ class ExpenseClaim {
       updatedAt: updatedAt ?? this.updatedAt,
       originalRefNumber: originalRefNumber ?? this.originalRefNumber,
       auditTrail: auditTrail ?? this.auditTrail,
+      approvalStages: approvalStages ?? this.approvalStages,
+      projectCode: projectCode ?? this.projectCode,
+      glAccountCode: glAccountCode ?? this.glAccountCode,
+      preFundedAuth: preFundedAuth ?? this.preFundedAuth,
+      isZatcaVerified: isZatcaVerified ?? this.isZatcaVerified,
+      verifiedAttachments: verifiedAttachments ?? this.verifiedAttachments,
+      systemLogs: systemLogs ?? this.systemLogs,
+      isRecallable: isRecallable ?? this.isRecallable,
     );
   }
 }
-

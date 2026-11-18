@@ -8,6 +8,15 @@
       "deviceId": "chrome"
     },
     {
+      "name": "ClaimDesk (Web Server - 100% Reliable)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "web-server",
+      "args": [
+        "--web-port=5050"
+      ]
+    },
+    {
       "name": "ClaimDesk (Edge)",
       "request": "launch",
       "type": "dart",

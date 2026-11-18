@@ -4,12 +4,14 @@ import 'package:uuid/uuid.dart';
 import '../theme/app_theme.dart';
 import '../models/expense_claim.dart';
 import '../providers/claim_desk_provider.dart';
+import '../widgets/document_picker_sheet.dart';
 import 'ocr_scanner_screen.dart';
 
 class NewClaimScreen extends StatefulWidget {
   final ExpenseClaim? initialDraft;
+  final Map<String, dynamic>? initialScannedReceipt;
 
-  const NewClaimScreen({super.key, this.initialDraft});
+  const NewClaimScreen({super.key, this.initialDraft, this.initialScannedReceipt});
 
   @override
   State<NewClaimScreen> createState() => _NewClaimScreenState();
@@ -33,12 +35,18 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
 
   final List<String> _categories = [
     'Fuel & Fleet',
-    'Maintenance & Parts',
-    'Office Supplies',
-    'Safety Consumables',
+    'Site Transport & Logistics',
     'Courier & Freight',
-    'Site Hospitality & Meals',
+    'Maintenance & Parts',
+    'Equipment Maintenance & Spare Parts',
     'Hardware & Tools',
+    'Office Supplies',
+    'Office Supplies & Consumables',
+    'Safety Consumables',
+    'Site Hospitality & Meals',
+    'Meals & Entertainment',
+    'Travel & Per Diem',
+    'Operating Supplies & Sundries',
   ];
 
   @override
@@ -51,6 +59,34 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
       _claimDate = draft.claimDate;
       _descController.text = draft.description;
       _lines.addAll(draft.lines);
+    } else if (widget.initialScannedReceipt != null) {
+      _docRefNumber = 'EXP-2026-${(100 + DateTime.now().microsecond % 900)}';
+      final r = widget.initialScannedReceipt!;
+      if (r['justification'] != null && r['justification'].toString().isNotEmpty) {
+        _descController.text = r['justification'].toString();
+      }
+      final cat = r['category']?.toString() ?? _categories.first;
+      final inv = r['invoiceNumber']?.toString() ?? '';
+      final base = (r['baseAmount'] as num?)?.toDouble() ?? 0.0;
+      final vat = (r['vatAmount'] as num?)?.toDouble() ?? 0.0;
+      final tot = (r['totalAmount'] as num?)?.toDouble() ?? (base + vat);
+      final att = r['attachmentName']?.toString();
+      final dt = (r['invoiceDate'] as DateTime?) ?? DateTime.now();
+
+      _lines.add(
+        ExpenseLineItem(
+          id: _uuid.v4(),
+          date: dt,
+          category: cat,
+          invoiceNumber: inv,
+          baseAmount: base,
+          vatRatePercentage: 15.0,
+          vatAmount: vat,
+          totalAmount: tot,
+          attachmentName: att,
+          status: LineStatus.pending,
+        ),
+      );
     } else {
       _docRefNumber = 'EXP-2026-${(100 + DateTime.now().microsecond % 900)}';
       _addNewBlankLine();
@@ -60,21 +96,22 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
   void _addNewBlankLine() {
     final provider = context.read<ClaimDeskProvider>();
     final vatRate = provider.configuredVatPercentage;
-    setState(() {
-      _lines.add(
-        ExpenseLineItem(
-          id: _uuid.v4(),
-          date: DateTime.now(),
-          category: _categories.first,
-          invoiceNumber: '',
-          baseAmount: 0.0,
-          vatRatePercentage: vatRate,
-          vatAmount: 0.0,
-          totalAmount: 0.0,
-          status: LineStatus.pending,
-        ),
-      );
-    });
+    final newLine = ExpenseLineItem(
+      id: _uuid.v4(),
+      date: DateTime.now(),
+      category: _categories.first,
+      invoiceNumber: '',
+      baseAmount: 0.0,
+      vatRatePercentage: vatRate,
+      vatAmount: 0.0,
+      totalAmount: 0.0,
+      status: LineStatus.pending,
+    );
+    if (mounted) {
+      setState(() {
+        _lines.add(newLine);
+      });
+    }
   }
 
   void _removeLine(int index) {
@@ -112,8 +149,15 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
       final provider = context.read<ClaimDeskProvider>();
       final vatRate = provider.configuredVatPercentage;
       final base = (scannedData['baseAmount'] as num).toDouble();
-      final vat = (base * vatRate) / 100.0;
-      final total = base + vat;
+      final vat = (scannedData['vatAmount'] as num?)?.toDouble() ??
+          double.parse(((base * vatRate) / 100.0).toStringAsFixed(2));
+      final total = (scannedData['totalAmount'] as num?)?.toDouble() ?? (base + vat);
+
+      if (_descController.text.trim().isEmpty &&
+          scannedData['justification'] != null &&
+          scannedData['justification'].toString().isNotEmpty) {
+        _descController.text = scannedData['justification'].toString();
+      }
 
       setState(() {
         _lines[index] = _lines[index].copyWith(
@@ -259,12 +303,16 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-              setState(() {
-                _docRefNumber = 'EXP-2026-${(100 + DateTime.now().microsecond % 900)}';
-                _descController.clear();
-                _lines.clear();
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              } else {
+                setState(() {
+                  _docRefNumber = 'EXP-2026-${(100 + DateTime.now().microsecond % 900)}';
+                  _descController.clear();
+                  _lines.clear();
+                });
                 _addNewBlankLine();
-              });
+              }
             },
             child: const Text('OK'),
           ),
@@ -394,14 +442,22 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
 
                   // Document Type Dropdown
                   DropdownButtonFormField<String>(
-                    initialValue: _selectedDocType,
+                    value: _selectedDocType,
+                    isExpanded: true,
                     dropdownColor: Colors.white,
                     decoration: const InputDecoration(
                       labelText: 'Document Type (Routes Workflow)',
                       prefixIcon: Icon(Icons.alt_route, size: 18, color: AppTheme.textSecondary),
                     ),
-                    items: _docTypes.map((type) {
-                      return DropdownMenuItem(value: type, child: Text(type, style: const TextStyle(fontSize: 13.5, color: AppTheme.textPrimary)));
+                    items: {..._docTypes, _selectedDocType}.map((type) {
+                      return DropdownMenuItem(
+                        value: type,
+                        child: Text(
+                          type,
+                          style: const TextStyle(fontSize: 13.5, color: AppTheme.textPrimary),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
                     }).toList(),
                     onChanged: (val) {
                       if (val != null) setState(() => _selectedDocType = val);
@@ -550,6 +606,7 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
 
   Widget _buildLineItemCard(int index, ExpenseLineItem line, double configuredVat) {
     return Card(
+      key: ValueKey('line_${line.id}_${line.category}_${line.invoiceNumber}_${line.baseAmount}'),
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -621,10 +678,20 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
               children: [
                 Expanded(
                   child: DropdownButtonFormField<String>(
-                    initialValue: line.category,
+                    value: line.category,
+                    isExpanded: true,
                     dropdownColor: Colors.white,
                     decoration: const InputDecoration(labelText: 'Category'),
-                    items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c, style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary)))).toList(),
+                    items: {..._categories, line.category}.map((c) {
+                      return DropdownMenuItem(
+                        value: c,
+                        child: Text(
+                          c,
+                          style: const TextStyle(fontSize: 12, color: AppTheme.textPrimary),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
                     onChanged: (val) {
                       if (val != null) {
                         _updateLine(index, line.copyWith(category: val));
@@ -719,16 +786,26 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
                     ),
                   ),
                 ),
-                TextButton(
-                  onPressed: () {
-                    _updateLine(
-                      index,
-                      line.copyWith(attachmentName: 'invoice_${line.category.replaceAll(' ', '_')}.pdf'),
+                TextButton.icon(
+                  icon: const Icon(Icons.upload_file, size: 14),
+                  onPressed: () async {
+                    final doc = await DocumentPickerSheet.show(
+                      context,
+                      title: 'Attach Expense Receipt / Tax Invoice',
+                      subtitle: 'Provide official ZATCA VAT tax invoice for audit compliance',
+                      documentType: 'Receipt',
+                      allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png'],
                     );
+                    if (doc != null) {
+                      _updateLine(
+                        index,
+                        line.copyWith(attachmentName: doc.name),
+                      );
+                    }
                   },
-                  child: Text(
-                    line.attachmentName == null ? 'Attach Invoice' : 'Change',
-                    style: const TextStyle(fontSize: 12, color: AppTheme.primaryOrange),
+                  label: Text(
+                    line.attachmentName == null ? 'Scan / Attach Invoice' : 'Change',
+                    style: const TextStyle(fontSize: 12, color: AppTheme.primaryOrange, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/claim_desk_provider.dart';
 import '../widgets/app_header.dart';
+import '../widgets/kinetic_background.dart';
 import 'dashboard_screen.dart';
 import 'new_claim_screen.dart';
 import 'resubmission_screen.dart';
@@ -49,9 +50,11 @@ class _MainShellState extends State<MainShell> {
       appBar: ClaimDeskAppHeader(
         onNotificationTap: () => _onTabSelected(2), // Jump to Action Needed tab
       ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
+      body: KineticBackground(
+        child: IndexedStack(
+          index: _currentIndex,
+          children: screens,
+        ),
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(

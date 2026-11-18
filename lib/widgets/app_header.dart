@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/claim_desk_provider.dart';
 import '../screens/login_screen.dart';
+import 'expertise_logo.dart';
 
 class ClaimDeskAppHeader extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onNotificationTap;
@@ -116,36 +117,16 @@ class ClaimDeskAppHeader extends StatelessWidget implements PreferredSizeWidget 
       ),
       title: Row(
         mainAxisSize: MainAxisSize.min,
-        children: [
-          RichText(
-            text: const TextSpan(
-              style: TextStyle(
-                fontFamily: 'Segoe UI',
-                fontSize: 16.5,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-                letterSpacing: -0.3,
-              ),
-              children: [
-                TextSpan(text: 'e'),
-                TextSpan(
-                  text: 'x',
-                  style: TextStyle(
-                    color: AppTheme.primaryOrange,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 19,
-                  ),
-                ),
-                TextSpan(text: 'pertise '),
-                TextSpan(
-                  text: 'ClaimDesk',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 13,
-                    color: Color(0xFFCBD5E1),
-                  ),
-                ),
-              ],
+        children: const [
+          ExpertiseLogo(height: 19),
+          SizedBox(width: 8),
+          Text(
+            'ClaimDesk',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13.5,
+              color: Color(0xFFCBD5E1),
+              letterSpacing: 0.2,
             ),
           ),
         ],
@@ -222,6 +203,7 @@ class ClaimDeskAppHeader extends StatelessWidget implements PreferredSizeWidget 
   void _showUserModal(BuildContext context, ClaimDeskProvider provider) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -230,85 +212,92 @@ class ClaimDeskAppHeader extends StatelessWidget implements PreferredSizeWidget 
         final user = provider.activeUser;
         final card = provider.activeCard;
         return Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: AppTheme.primaryOrange,
-                    child: Text(
-                      user.name[0],
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 22,
+                      backgroundColor: AppTheme.primaryOrange,
+                      child: Text(
+                        user.name[0],
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user.name,
-                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.name,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                          ),
+                          Text(
+                            '${user.designation} • ${user.employeeId}',
+                            style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const Divider(height: 20),
+                _infoRow('Company', user.company),
+                _infoRow('Division', user.division),
+                _infoRow('Department', user.department),
+                _infoRow('Cost Center', user.costCenter),
+                _infoRow('Assigned Card', user.hasActiveCard ? card.maskedCardNumber : (provider.activeCardApplication != null ? 'Pending Approval' : 'Not Applied Yet')),
+                _infoRow('Card Validity', user.hasActiveCard ? '01/01/2026 – 31/12/2026' : 'Awaiting Activation'),
+                const SizedBox(height: 18),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppTheme.dangerRed,
+                          side: const BorderSide(color: AppTheme.dangerRed, width: 1.2),
+                          padding: const EdgeInsets.symmetric(vertical: 11),
                         ),
-                        Text(
-                          '${user.designation} • ${user.employeeId}',
-                          style: const TextStyle(fontSize: 12.5, color: AppTheme.textSecondary),
+                        icon: const Icon(Icons.logout, size: 16, color: AppTheme.dangerRed),
+                        label: const Text(
+                          'Log Out',
+                          style: TextStyle(color: AppTheme.dangerRed, fontWeight: FontWeight.bold),
                         ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(height: 28),
-              _infoRow('Company', user.company),
-              _infoRow('Division', user.division),
-              _infoRow('Department', user.department),
-              _infoRow('Cost Center', user.costCenter),
-              _infoRow('Assigned Card', card.maskedCardNumber),
-              _infoRow('Card Validity', '01/01/2026 – 31/12/2026'),
-              const SizedBox(height: 22),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.dangerRed,
-                        side: const BorderSide(color: AppTheme.dangerRed, width: 1.2),
-                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (_) => const LoginScreen()),
+                            (route) => false,
+                          );
+                        },
                       ),
-                      icon: const Icon(Icons.logout, size: 16, color: AppTheme.dangerRed),
-                      label: const Text(
-                        'Log Out',
-                        style: TextStyle(color: AppTheme.dangerRed, fontWeight: FontWeight.bold),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (_) => const LoginScreen()),
-                          (route) => false,
-                        );
-                      },
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 13),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 11),
+                        ),
+                        icon: const Icon(Icons.close, size: 16),
+                        label: const Text('Close'),
+                        onPressed: () => Navigator.pop(ctx),
                       ),
-                      icon: const Icon(Icons.close, size: 16),
-                      label: const Text('Close'),
-                      onPressed: () => Navigator.pop(ctx),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         );
       },

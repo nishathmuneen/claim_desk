@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/chevron_background.dart';
+import '../widgets/expertise_logo.dart';
 import 'login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -67,40 +68,10 @@ class _SplashScreenState extends State<SplashScreen>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // "expertise" logo matching User Image 2
-                  RichText(
-                    text: const TextSpan(
-                      style: TextStyle(
-                        fontFamily: 'Segoe UI',
-                        fontSize: 46,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        letterSpacing: -1.0,
-                      ),
-                      children: [
-                        TextSpan(text: 'e'),
-                        TextSpan(
-                          text: 'x',
-                          style: TextStyle(
-                            color: AppTheme.primaryOrange,
-                            fontSize: 50,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        TextSpan(text: 'pertise'),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  // Corporate Tagline (From User Image 2)
-                  const Text(
-                    'Inspiring Excellence',
-                    style: TextStyle(
-                      color: Color(0xFFCBD5E1),
-                      fontSize: 16,
-                      letterSpacing: 1.4,
-                      fontWeight: FontWeight.w400,
-                    ),
+                  // Exact Official "expertise" logo matching User Attachment
+                  const ExpertiseLogo(
+                    height: 52,
+                    showTagline: true,
                   ),
                   const SizedBox(height: 38),
                   // App Badge

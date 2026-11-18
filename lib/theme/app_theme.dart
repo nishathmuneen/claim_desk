@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Brand Canvas: Clean light modern background (Image 1 reference)
-  static const Color background = Color(0xFFF4F6FA);
+  // Brand Canvas: Clean light modern background (Stitch Kinetic Precision reference)
+  static const Color background = Color(0xFFF8FAFF);
   static const Color surface = Color(0xFFFFFFFF); // Crisp Pure White Card
   static const Color surfaceElevated = Color(0xFFF8FAFC); // Subtle Off-White
   static const Color border = Color(0xFFE2E8F0); // Crisp light border

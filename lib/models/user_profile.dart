@@ -11,6 +11,8 @@ class UserProfile {
   final String phone;
   final String role; // e.g., "Custodian", "Approver", "Finance", "Admin"
   final String assignedCardNumber;
+  final bool hasActiveCard;
+  final String scenarioDescription;
 
   const UserProfile({
     required this.id,
@@ -25,6 +27,8 @@ class UserProfile {
     required this.phone,
     required this.role,
     required this.assignedCardNumber,
+    this.hasActiveCard = true,
+    this.scenarioDescription = 'Active Card Custodian',
   });
 
   static const List<UserProfile> demoUsers = [
@@ -41,9 +45,43 @@ class UserProfile {
       phone: '+966 50 123 4567',
       role: 'Custodian',
       assignedCardNumber: '4821-8890-1120-9901',
+      hasActiveCard: true,
+      scenarioDescription: 'Active Custodian (Low Balance • Refill & Claims Demo)',
     ),
     UserProfile(
       id: 'USR-002',
+      name: 'Zaid Al-Harbi',
+      employeeId: 'EMP-9540',
+      designation: 'Mechanical Maintenance Engineer',
+      company: 'Expertise Contracting Co.',
+      division: 'Western Region (Yanbu Plant)',
+      department: 'Plant Operations',
+      costCenter: 'CC-202',
+      iqama: '2419082341',
+      phone: '+966 54 881 2299',
+      role: 'Custodian',
+      assignedCardNumber: '',
+      hasActiveCard: false,
+      scenarioDescription: 'New Employee: Card in Approval (Stage 3/5: Finance Review)',
+    ),
+    UserProfile(
+      id: 'USR-003',
+      name: 'Majid Al-Dossary',
+      employeeId: 'EMP-9812',
+      designation: 'Electrical Field Technician',
+      company: 'Expertise Contracting Co.',
+      division: 'Southern Division (Jazan Project)',
+      department: 'Field Engineering',
+      costCenter: 'CC-305',
+      iqama: '2501928374',
+      phone: '+966 56 332 1144',
+      role: 'Custodian',
+      assignedCardNumber: '',
+      hasActiveCard: false,
+      scenarioDescription: 'New Employee: Yet to Upload Details (Explore KYC Upload Wizard)',
+    ),
+    UserProfile(
+      id: 'USR-004',
       name: 'Salman Farooq',
       employeeId: 'EMP-8419',
       designation: 'Industrial Field Supervisor',
@@ -55,20 +93,8 @@ class UserProfile {
       phone: '+966 55 987 6543',
       role: 'Custodian',
       assignedCardNumber: '4821-7734-2201-4412',
-    ),
-    UserProfile(
-      id: 'USR-003',
-      name: 'Sarah Al-Otaibi',
-      employeeId: 'EMP-7710',
-      designation: 'Admin & Facilities Coordinator',
-      company: 'Expertise Contracting Co.',
-      division: 'Central Division (Riyadh)',
-      department: 'Administration',
-      costCenter: 'CC-108',
-      iqama: '1092837461',
-      phone: '+966 53 456 7890',
-      role: 'Custodian',
-      assignedCardNumber: '4821-6621-3312-8803',
+      hasActiveCard: true,
+      scenarioDescription: 'Active Custodian (Jubail Division)',
     ),
   ];
 }
