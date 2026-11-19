@@ -29,6 +29,7 @@ class CardApplication {
   final String mobileNumberPersonal;
   final String mobileNumberOfficial;
   final String emailOfficial;
+  final String emailPersonal;
 
   // National Address (SPL)
   final String shortAddressCode;
@@ -101,6 +102,7 @@ class CardApplication {
     required this.mobileNumberPersonal,
     required this.mobileNumberOfficial,
     required this.emailOfficial,
+    this.emailPersonal = '',
     required this.shortAddressCode,
     required this.buildingNumber,
     required this.streetName,
@@ -198,6 +200,7 @@ class CardApplication {
     String? mobileNumberPersonal,
     String? mobileNumberOfficial,
     String? emailOfficial,
+    String? emailPersonal,
     String? shortAddressCode,
     String? buildingNumber,
     String? streetName,
@@ -256,6 +259,7 @@ class CardApplication {
       mobileNumberPersonal: mobileNumberPersonal ?? this.mobileNumberPersonal,
       mobileNumberOfficial: mobileNumberOfficial ?? this.mobileNumberOfficial,
       emailOfficial: emailOfficial ?? this.emailOfficial,
+      emailPersonal: emailPersonal ?? this.emailPersonal,
       shortAddressCode: shortAddressCode ?? this.shortAddressCode,
       buildingNumber: buildingNumber ?? this.buildingNumber,
       streetName: streetName ?? this.streetName,
