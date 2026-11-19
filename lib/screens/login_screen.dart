@@ -181,6 +181,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// 2. Employee Custodian Selector Section
   Widget _buildCustodianSelectorSection() {
+    final provider = context.watch<ClaimDeskProvider>();
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -234,14 +236,14 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           const SizedBox(height: 12),
           for (final user in UserProfile.demoUsers)
-            _buildUserTile(user),
+            _buildUserTile(user, hasAwaitedCard: provider.hasCardApplication(user.id)),
         ],
       ),
     );
   }
 
   /// Individual Custodian Profile Tile: Shows ONLY if user is Active, Card Awaited, or New User
-  Widget _buildUserTile(UserProfile user) {
+  Widget _buildUserTile(UserProfile user, {required bool hasAwaitedCard}) {
     final bool isSelected = user.id == _selectedUser.id;
 
     Color badgeBg;
@@ -254,7 +256,7 @@ class _LoginScreenState extends State<LoginScreen> {
       badgeText = const Color(0xFF059669);
       badgeLabel = 'Active';
       badgeIcon = Icons.check_circle;
-    } else if (user.id == 'USR-002') {
+    } else if (hasAwaitedCard) {
       badgeBg = const Color(0xFFFFFBEB);
       badgeText = const Color(0xFFD97706);
       badgeLabel = 'Card Awaited';
@@ -262,7 +264,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       badgeBg = const Color(0xFFEFF6FF);
       badgeText = const Color(0xFF2563EB);
-      badgeLabel = 'New User';
+      badgeLabel = 'New User!';
       badgeIcon = Icons.person_add_alt_1_rounded;
     }
 

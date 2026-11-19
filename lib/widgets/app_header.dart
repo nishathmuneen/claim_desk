@@ -14,7 +14,7 @@ class ClaimDeskAppHeader extends StatelessWidget implements PreferredSizeWidget 
   });
 
   @override
-  Size get preferredSize => const Size.fromHeight(66.0);
+  Size get preferredSize => const Size.fromHeight(64.0);
 
   @override
   Widget build(BuildContext context) {
@@ -22,181 +22,235 @@ class ClaimDeskAppHeader extends StatelessWidget implements PreferredSizeWidget 
     final activeUser = provider.activeUser;
     final activeRole = provider.activeRole;
 
+    String getShortRole(String role) {
+      if (role.contains('Custodian')) return 'Custodian';
+      if (role.contains('Finance')) return 'Finance';
+      return role;
+    }
+
     return AppBar(
-      toolbarHeight: 66.0,
-      backgroundColor: AppTheme.navyDark, // Deep Navy header matching Image 2
-      titleSpacing: 10.0,
-      leadingWidth: 175.0,
-      leading: Padding(
-        padding: const EdgeInsets.only(left: 12.0),
-        child: Center(
-          child: Container(
-            height: 38,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              color: AppTheme.navyElevated,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFF2E3E5C)),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: activeRole,
-                dropdownColor: AppTheme.navySurface,
-                icon: const Icon(
-                  Icons.arrow_drop_down,
-                  color: AppTheme.primaryOrange,
-                  size: 20,
-                ),
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                items: const [
-                  DropdownMenuItem(
-                    value: 'User / Custodian',
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.person, size: 15, color: AppTheme.primaryOrange),
-                        SizedBox(width: 6),
-                        Text('User / Custodian'),
-                      ],
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Approver',
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.check_circle_outline, size: 15, color: AppTheme.infoBlue),
-                        SizedBox(width: 6),
-                        Text('Approver'),
-                      ],
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Finance / AP',
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.account_balance, size: 15, color: AppTheme.successGreen),
-                        SizedBox(width: 6),
-                        Text('Finance / AP'),
-                      ],
-                    ),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Admin',
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.admin_panel_settings, size: 15, color: AppTheme.closedPurple),
-                        SizedBox(width: 6),
-                        Text('Admin'),
-                      ],
-                    ),
-                  ),
-                ],
-                onChanged: (newRole) {
-                  if (newRole != null) {
-                    provider.switchRole(newRole);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Switched view context to $newRole'),
-                        backgroundColor: AppTheme.navyDark,
-                        duration: const Duration(seconds: 1),
-                      ),
-                    );
-                  }
-                },
-              ),
-            ),
-          ),
-        ),
-      ),
+      automaticallyImplyLeading: false,
+      toolbarHeight: 64.0,
+      backgroundColor: AppTheme.navyDark, // Deep Navy header matching corporate palette
+      titleSpacing: 14.0,
+      elevation: 0,
       title: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: const [
-          ExpertiseLogo(height: 19),
-          SizedBox(width: 8),
-          Text(
-            'ClaimDesk',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 13.5,
-              color: Color(0xFFCBD5E1),
-              letterSpacing: 0.2,
-            ),
+        children: [
+          // Left: Brand Logo & Product Title
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: const [
+              ExpertiseLogo(height: 20),
+              SizedBox(width: 8),
+              Text(
+                'ClaimDesk',
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16.0,
+                  color: Colors.white,
+                  letterSpacing: 0.3,
+                ),
+              ),
+            ],
+          ),
+
+          const Spacer(),
+
+          // Right Controls: Sleek Role Switcher + Notification Badge + User Avatar
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Compact Role Switcher Pill
+              Container(
+                height: 35,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.navyElevated,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFF2E3E5C), width: 1.0),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: activeRole,
+                    dropdownColor: AppTheme.navySurface,
+                    icon: const Icon(
+                      Icons.arrow_drop_down,
+                      color: AppTheme.primaryOrange,
+                      size: 18,
+                    ),
+                    isDense: true,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                    selectedItemBuilder: (BuildContext ctx) {
+                      return [
+                        'User / Custodian',
+                        'Approver',
+                        'Finance / AP',
+                        'Admin',
+                      ].map((role) {
+                        IconData icon;
+                        Color iconColor;
+                        if (role.contains('Custodian')) {
+                          icon = Icons.person;
+                          iconColor = AppTheme.primaryOrange;
+                        } else if (role.contains('Approver')) {
+                          icon = Icons.check_circle_outline;
+                          iconColor = AppTheme.infoBlue;
+                        } else if (role.contains('Finance')) {
+                          icon = Icons.account_balance;
+                          iconColor = AppTheme.successGreen;
+                        } else {
+                          icon = Icons.admin_panel_settings;
+                          iconColor = AppTheme.closedPurple;
+                        }
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(icon, size: 14, color: iconColor),
+                            const SizedBox(width: 5),
+                            Text(getShortRole(role)),
+                          ],
+                        );
+                      }).toList();
+                    },
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'User / Custodian',
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.person, size: 15, color: AppTheme.primaryOrange),
+                            SizedBox(width: 8),
+                            Text('User / Custodian'),
+                          ],
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Approver',
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.check_circle_outline, size: 15, color: AppTheme.infoBlue),
+                            SizedBox(width: 8),
+                            Text('Approver'),
+                          ],
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Finance / AP',
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.account_balance, size: 15, color: AppTheme.successGreen),
+                            SizedBox(width: 8),
+                            Text('Finance / AP'),
+                          ],
+                        ),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Admin',
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.admin_panel_settings, size: 15, color: AppTheme.closedPurple),
+                            SizedBox(width: 8),
+                            Text('Admin'),
+                          ],
+                        ),
+                      ),
+                    ],
+                    onChanged: (newRole) {
+                      if (newRole != null) {
+                        provider.switchRole(newRole);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Switched view context to $newRole'),
+                            backgroundColor: AppTheme.navyDark,
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ),
+              ),
+
+              if (provider.actionNeededCount > 0) ...[
+                const SizedBox(width: 4),
+                IconButton(
+                  tooltip: 'Action Required',
+                  icon: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      const Icon(Icons.notifications_active_outlined, color: AppTheme.primaryOrange, size: 21),
+                      Positioned(
+                        right: -3,
+                        top: -3,
+                        child: Container(
+                          padding: const EdgeInsets.all(3.0),
+                          decoration: const BoxDecoration(
+                            color: AppTheme.dangerRed,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            '${provider.actionNeededCount}',
+                            style: const TextStyle(
+                              fontSize: 9.0,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  onPressed: onNotificationTap,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  padding: EdgeInsets.zero,
+                ),
+              ],
+
+              const SizedBox(width: 6),
+
+              // User Avatar Chip
+              InkWell(
+                onTap: () => _showUserModal(context, provider),
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  height: 35,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.navyElevated,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: const Color(0xFF2E3E5C), width: 1.0),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircleAvatar(
+                        radius: 11,
+                        backgroundColor: AppTheme.primaryOrange,
+                        child: Text(
+                          activeUser.name[0],
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        activeUser.name.split(' ').first,
+                        style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
-      actions: [
-        if (provider.actionNeededCount > 0)
-          IconButton(
-            tooltip: 'Action Required',
-            icon: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                const Icon(Icons.notifications_active_outlined, color: AppTheme.primaryOrange, size: 23),
-                Positioned(
-                  right: -3,
-                  top: -3,
-                  child: Container(
-                    padding: const EdgeInsets.all(3.5),
-                    decoration: const BoxDecoration(
-                      color: AppTheme.dangerRed,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      '${provider.actionNeededCount}',
-                      style: const TextStyle(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            onPressed: onNotificationTap,
-          ),
-
-        // User Avatar Chip
-        Padding(
-          padding: const EdgeInsets.only(right: 12.0),
-          child: InkWell(
-            onTap: () => _showUserModal(context, provider),
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: AppTheme.navyElevated,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF2E3E5C)),
-              ),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 11,
-                    backgroundColor: AppTheme.primaryOrange,
-                    child: Text(
-                      activeUser.name[0],
-                      style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    activeUser.name.split(' ').first,
-                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 

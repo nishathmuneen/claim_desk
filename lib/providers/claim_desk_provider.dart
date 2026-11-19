@@ -32,9 +32,11 @@ class ClaimDeskProvider extends ChangeNotifier {
   final List<ExpenseClaim> _claims = [];
   List<ExpenseClaim> get claims => List.unmodifiable(_claims);
 
-  // Card Application & KYC state
-  CardApplication? _activeCardApplication;
-  CardApplication? get activeCardApplication => _activeCardApplication;
+  // Card Application & KYC state (tracked dynamically per user profile id)
+  final Map<String, CardApplication> _userApplications = {};
+  CardApplication? get activeCardApplication => _userApplications[_activeUser.id];
+  bool hasCardApplication(String userId) => _userApplications.containsKey(userId);
+  CardApplication? getApplicationForUser(String userId) => _userApplications[userId];
 
   // Card Refill Requests
   final List<CardRefillRequest> _refillRequests = [];
@@ -93,33 +95,10 @@ class ClaimDeskProvider extends ChangeNotifier {
         singleTransactionCap: 2000.0,
         activeRefillStatus: 'Refill of SAR 5,000 in Finance Review',
       );
-      _activeCardApplication = null; // Already has active card
       _seedRefillForTariq();
       _seedMockClaims();
-    } else if (user.id == 'USR-002') {
-      // Zaid Al-Harbi: New Employee with Card Application in Approval Stage (Mock Data)
-      _activeCard = PettyCashCard(
-        cardNumber: 'NOT_ISSUED_YET',
-        cardholderName: user.name,
-        employeeId: user.employeeId,
-        company: user.company,
-        division: user.division,
-        department: user.department,
-        designation: user.designation,
-        costCenter: user.costCenter,
-        iqama: user.iqama,
-        phone: user.phone,
-        isInactive: true,
-        startDate: DateTime.now(),
-        endDate: DateTime.now().add(const Duration(days: 365)),
-        monthlyLimit: 10000.0,
-        currentBalance: 0.0,
-        spentAmount: 0.0,
-      );
-      _activeCardApplication = _buildMockApplicationForZaid(user);
-      // No claims yet because card is not active
     } else if (user.id == 'USR-003') {
-      // Majid Al-Dossary: New Employee without Mock Data (Yet to Upload Details)
+      // Majid Al-Dossary: New Employee without pre-seeded application (Ready to Upload Details)
       _activeCard = PettyCashCard(
         cardNumber: 'NOT_APPLIED',
         cardholderName: user.name,
@@ -138,8 +117,7 @@ class ClaimDeskProvider extends ChangeNotifier {
         currentBalance: 0.0,
         spentAmount: 0.0,
       );
-      _activeCardApplication = null; // Clean slate: yet to upload details!
-      // No claims yet
+      // Clean slate: starts with no active application
     } else {
       // Salman Farooq or any other default
       _activeCard = PettyCashCard(
@@ -161,69 +139,8 @@ class ClaimDeskProvider extends ChangeNotifier {
         minimumThreshold: 1000.0,
         singleTransactionCap: 2000.0,
       );
-      _activeCardApplication = null;
       _seedMockClaims();
     }
-  }
-
-  CardApplication _buildMockApplicationForZaid(UserProfile user) {
-    return CardApplication(
-      id: 'APP-2026-0104',
-      fullNameEnglish: user.name,
-      fullNameArabic: 'زيد الحربي',
-      nationality: 'Saudi Arabia',
-      dateOfBirth: DateTime(1994, 8, 22),
-      iqamaNumber: user.iqama,
-      iqamaExpiryDateGregorian: DateTime(2028, 11, 15),
-      iqamaExpiryDateHijri: '1450/06/01',
-      passportNumber: 'N84920184',
-      passportIssueDate: DateTime(2021, 6, 12),
-      passportExpiryDate: DateTime(2031, 6, 11),
-      mobileNumberPersonal: user.phone,
-      mobileNumberOfficial: '+966 54 002 9988',
-      emailOfficial: 'zaid.h@expertise.sa',
-      shortAddressCode: 'YAMB4109',
-      buildingNumber: '3210',
-      streetName: 'Prince Abdul Majeed St',
-      district: 'Al-Bahar',
-      city: 'Yanbu Industrial City',
-      postalCode: '46452',
-      employeeId: user.employeeId,
-      designation: user.designation,
-      employeeGrade: 'Band-B (Plant Specialist)',
-      company: user.company,
-      division: user.division,
-      department: user.department,
-      costCenter: user.costCenter,
-      reportingManagerName: 'Sultan Al-Otaibi',
-      reportingManagerId: 'EMP-1104',
-      projectWbsCode: 'YASREF-REF-8821',
-      operatingSiteLocation: 'YASREF Refinery Zone 2',
-      cardFormat: CardFormat.physicalPlastic,
-      embossedName: 'ZAID AL-HARBI',
-      monthlyLimit: 10000.0,
-      singleTransactionCap: 2500.0,
-      dailySpendingCap: 4000.0,
-      authorizedCategories: const [
-        'Equipment Maintenance & Spare Parts',
-        'Hardware & Site Tools',
-        'Emergency Consumables',
-      ],
-      deliveryPreference: 'Site Courier Dispatch (Yanbu Operations Office)',
-      passportCopyPath: 'passport_zaid_alharbi.pdf',
-      iqamaCopyPath: 'iqama_zaid_front_back.jpg',
-      applicantPhotoPath: 'photo_zaid_white_bg.jpg',
-      signatureSpecimenPath: 'zaid_digital_signature.png',
-      personalIban: 'SA21 1000 0001 2345 6789 0123',
-      bankName: 'National Commercial Bank (SNB)',
-      emergencyContactName: 'Bandar Al-Harbi',
-      emergencyContactMobile: '+966 54 112 3344',
-      emergencyRelation: 'Father',
-      termsAccepted: true,
-      submissionTimestamp: DateTime(2026, 11, 10, 9, 30),
-      status: ApplicationStatus.financeApproval,
-      estimatedActivationDate: DateTime(2026, 11, 18),
-    );
   }
 
   void _seedRefillForTariq() {
@@ -254,7 +171,13 @@ class ClaimDeskProvider extends ChangeNotifier {
   }
 
   void submitCardApplication(CardApplication application) {
-    _activeCardApplication = application;
+    _userApplications[_activeUser.id] = application;
+    notifyListeners();
+  }
+
+  void deleteCardApplication([String? userId]) {
+    final targetId = userId ?? _activeUser.id;
+    _userApplications.remove(targetId);
     notifyListeners();
   }
 

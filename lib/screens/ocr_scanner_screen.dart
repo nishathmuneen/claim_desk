@@ -32,7 +32,7 @@ class _OcrScannerScreenState extends State<OcrScannerScreen>
   final _baseAmountController = TextEditingController();
   final _vatAmountController = TextEditingController();
   final _totalAmountController = TextEditingController();
-  final _notesController = TextEditingController(text: 'Transportation of company materials / goods.');
+  final _notesController = TextEditingController();
   String _selectedProject = 'Aramco Ras Tanura Refinery (CC-402)';
   DateTime _invoiceDate = DateTime.now();
 
@@ -218,72 +218,75 @@ class _OcrScannerScreenState extends State<OcrScannerScreen>
       body: KineticBackground(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Instructions banner
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppTheme.surface,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppTheme.border),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.02),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: const Row(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 860),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(Icons.info_outline, size: 18, color: AppTheme.primaryOrange),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Position invoice/receipt inside frame. OCR will detect Merchant, Date, Tax Invoice #, and VAT breakdown.',
-                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                  // Instructions banner
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surface,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppTheme.border),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.02),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.info_outline, size: 18, color: AppTheme.primaryOrange),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Position invoice/receipt inside frame. OCR will detect Merchant, Date, Tax Invoice #, and VAT breakdown.',
+                            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
+                  const SizedBox(height: 18),
 
-            // Camera / Scanning Viewfinder Frame
-            Container(
-              height: 260,
-              decoration: BoxDecoration(
-                color: AppTheme.navyDark,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.primaryOrange, width: 2.0),
-              ),
-              child: Stack(
-                children: [
-                  // Receipt Graphic or Real Loaded Document
-                  Center(
-                    child: _selectedDocument != null
-                        ? Builder(
-                            builder: (context) {
-                              final previewBytes = _getPreviewBytes(_selectedDocument);
-                              if (previewBytes != null) {
-                                return Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: Container(
-                                        color: Colors.white,
-                                        padding: const EdgeInsets.all(4),
-                                        child: Image.memory(
-                                          previewBytes,
-                                          height: 220,
-                                          width: 320,
-                                          fit: BoxFit.contain,
-                                        ),
-                                      ),
-                                    ),
+                  // Camera / Scanning Viewfinder Frame
+                  Container(
+                    height: _selectedDocument != null ? 360 : 260,
+                    decoration: BoxDecoration(
+                      color: AppTheme.navyDark,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: AppTheme.primaryOrange, width: 2.0),
+                    ),
+                    child: Stack(
+                      children: [
+                        // Receipt Graphic or Real Loaded Document
+                        Center(
+                          child: _selectedDocument != null
+                              ? Builder(
+                                  builder: (context) {
+                                    final previewBytes = _getPreviewBytes(_selectedDocument);
+                                    if (previewBytes != null) {
+                                      return Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(10),
+                                            child: Container(
+                                              color: Colors.white,
+                                              padding: const EdgeInsets.all(6),
+                                              child: Image.memory(
+                                                previewBytes,
+                                                height: 310,
+                                                width: 440,
+                                                fit: BoxFit.contain,
+                                              ),
+                                            ),
+                                          ),
                                     Positioned(
                                       bottom: 8,
                                       child: Container(
@@ -417,7 +420,7 @@ class _OcrScannerScreenState extends State<OcrScannerScreen>
                       animation: _laserController,
                       builder: (context, child) {
                         return Positioned(
-                          top: _laserController.value * 230 + 10,
+                          top: _laserController.value * (_selectedDocument != null ? 320 : 230) + 10,
                           left: 20,
                           right: 20,
                           child: Container(
@@ -655,11 +658,11 @@ class _OcrScannerScreenState extends State<OcrScannerScreen>
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  'Subtotal (Net): SAR ${_baseAmountController.text.isNotEmpty ? _baseAmountController.text : "217.39"}',
+                                  'Subtotal (Net): SAR ${_baseAmountController.text.isNotEmpty ? _baseAmountController.text : "0.00"}',
                                   style: const TextStyle(fontSize: 10.5, color: AppTheme.textSecondary),
                                 ),
                                 Text(
-                                  'Input VAT (15%): SAR ${_vatAmountController.text.isNotEmpty ? _vatAmountController.text : "32.61"}',
+                                  'Input VAT (15%): SAR ${_vatAmountController.text.isNotEmpty ? _vatAmountController.text : "0.00"}',
                                   style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppTheme.primaryOrange),
                                 ),
                               ],
@@ -763,7 +766,9 @@ class _OcrScannerScreenState extends State<OcrScannerScreen>
         ),
       ),
     ),
-  );
+  ),
+),
+);
 }
 
   Widget _cornerMark(Alignment align) {

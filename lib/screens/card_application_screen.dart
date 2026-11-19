@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../models/card_application.dart';
@@ -10,6 +11,7 @@ import '../providers/claim_desk_provider.dart';
 import '../services/kyc_document_extraction_service.dart';
 import '../widgets/document_picker_sheet.dart';
 import '../widgets/kinetic_background.dart';
+import '../widgets/modern_horizontal_tracker_card.dart';
 
 /// Single-Step Fast-Track Corporate Card Application Screen
 /// - Step 1 (Only Step): Upload 3 KYC documents (Iqama, Passport, Applicant Photo) at the top
@@ -552,10 +554,18 @@ class _CardApplicationScreenState extends State<CardApplicationScreen> {
       backgroundColor: AppTheme.background,
       appBar: AppBar(
         title: const Text('Apply for Corporate Card'),
+        actions: [
+          if (existingApp != null && existingApp.status != ApplicationStatus.draft)
+            IconButton(
+              tooltip: 'Delete KYC Details & Re-apply',
+              icon: const Icon(Icons.delete_outline_rounded, color: AppTheme.dangerRed),
+              onPressed: () => _handleDeleteApplication(provider),
+            ),
+        ],
       ),
       body: KineticBackground(
         child: existingApp != null && existingApp.status != ApplicationStatus.draft
-            ? _buildExistingApplicationView(existingApp)
+            ? _buildExistingApplicationView(existingApp, provider)
             : _buildSingleStepApplicationForm(provider.activeUser),
       ),
     );
@@ -1724,14 +1734,130 @@ class _CardApplicationScreenState extends State<CardApplicationScreen> {
     );
   }
 
+  /// Reset all form inputs and document uploads back to clean state
+  void _resetForm() {
+    setState(() {
+      _iqamaDoc = null;
+      _passportDoc = null;
+      _photoDoc = null;
+      _isScanningIqama = false;
+      _isScanningPassport = false;
+      _isVerifyingPhoto = false;
+      _translationLog = const [];
+      _showTranslationDetails = false;
+      _enNameCtrl.clear();
+      _extractedArabicName = '';
+      _nationalityCtrl.clear();
+      _dobCtrl.clear();
+      _passportNoCtrl.clear();
+      _passportIssueCtrl.clear();
+      _passportExpiryCtrl.clear();
+      _placeOfIssueCtrl.clear();
+      _iqamaNoCtrl.clear();
+      _iqamaIssueCtrl.clear();
+      _iqamaExpiryCtrl.clear();
+      _occupationCtrl.clear();
+      _sponsorCtrl.clear();
+      _mobileCtrl.clear();
+      _companyEmailCtrl.clear();
+      _personalEmailCtrl.clear();
+    });
+  }
+
+  /// Delete KYC details dialog and reset state
+  Future<void> _handleDeleteApplication(ClaimDeskProvider provider) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.delete_outline_rounded, color: AppTheme.dangerRed, size: 24),
+            SizedBox(width: 8),
+            Text('Delete KYC Details?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          ],
+        ),
+        content: const Text(
+          'Are you sure you want to delete your submitted KYC application details?\n\n'
+          'This will cancel the pending review and reset your profile status back to "New User". You will be able to upload fresh documents and re-apply immediately.',
+          style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.45),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Keep Application', style: TextStyle(color: AppTheme.textSecondary)),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.dangerRed,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            icon: const Icon(Icons.delete_outline, size: 16),
+            label: const Text('Delete & Re-apply'),
+            onPressed: () => Navigator.pop(ctx, true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      provider.deleteCardApplication();
+      _resetForm();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: Colors.white, size: 18),
+              SizedBox(width: 8),
+              Text('KYC details deleted. You can now re-apply as a New User.'),
+            ],
+          ),
+          backgroundColor: AppTheme.navyDark,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   /// Existing Application Tracker View (shown once submitted or in-approval)
-  Widget _buildExistingApplicationView(CardApplication app) {
+  Widget _buildExistingApplicationView(CardApplication app, ClaimDeskProvider provider) {
     final stages = [
       'KYC Form Submitted',
       'Manager Endorsement',
       'Finance & AP Approval',
       'Card Embossing & Dispatch',
       'Card Activated & Active',
+    ];
+
+    final trackerStages = [
+      TrackerStageItem(
+        label: 'KYC Form',
+        isCompleted: app.currentStageIndex >= 1,
+        isActive: app.currentStageIndex == 0,
+      ),
+      TrackerStageItem(
+        label: 'Manager',
+        isCompleted: app.currentStageIndex >= 2,
+        isActive: app.currentStageIndex == 1,
+      ),
+      TrackerStageItem(
+        label: 'Finance AP',
+        isCompleted: app.currentStageIndex >= 3,
+        isActive: app.currentStageIndex == 2,
+      ),
+      TrackerStageItem(
+        label: 'Embossing',
+        isCompleted: app.currentStageIndex >= 4,
+        isActive: app.currentStageIndex == 3,
+      ),
+      TrackerStageItem(
+        label: 'Active Card',
+        isCompleted: app.currentStageIndex >= 5,
+        isActive: app.currentStageIndex == 4,
+      ),
     ];
 
     return SingleChildScrollView(
@@ -1742,62 +1868,7 @@ class _CardApplicationScreenState extends State<CardApplicationScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Card
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: AppTheme.navyDark,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          app.id,
-                          style: const TextStyle(
-                            fontFamily: 'monospace',
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryOrange.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppTheme.primaryOrange),
-                          ),
-                          child: Text(
-                            app.statusDisplay,
-                            style: const TextStyle(
-                              color: AppTheme.orangeLight,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      '${app.fullNameEnglish} • Iqama: ${app.iqamaNumber} • PP: ${app.passportNumber}',
-                      style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 12.5),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Mobile: ${app.mobileNumberPersonal} • Company: ${app.emailOfficial}${app.emailPersonal.isNotEmpty ? " • Personal: ${app.emailPersonal}" : ""}',
-                      style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Multi-Stage Tracker
+              // Section Header Label
               const Text(
                 'APPLICATION TRACKER',
                 style: TextStyle(
@@ -1809,49 +1880,120 @@ class _CardApplicationScreenState extends State<CardApplicationScreen> {
               ),
               const SizedBox(height: 12),
 
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(18.0),
-                  child: Column(
-                    children: [
-                      for (int i = 0; i < stages.length; i++) ...[
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Column(
-                              children: [
-                                CircleAvatar(
-                                  radius: 12,
-                                  backgroundColor: i <= app.currentStageIndex
-                                      ? AppTheme.successGreen
-                                      : (i == app.currentStageIndex + 1
-                                          ? AppTheme.primaryOrange
-                                          : const Color(0xFFE2E8F0)),
-                                  child: Icon(
-                                    i <= app.currentStageIndex ? Icons.check : Icons.circle,
-                                    size: 12,
-                                    color: Colors.white,
-                                  ),
+              // 1. Modern Horizontal Tracker Card (Reference Design)
+              ModernHorizontalTrackerCard(
+                id: app.id,
+                statusLabel: app.statusDisplay,
+                statusColor: app.status == ApplicationStatus.active
+                    ? AppTheme.royalBlue
+                    : AppTheme.primaryOrange,
+                startDate: DateFormat('dd MMM, yyyy').format(app.submissionTimestamp),
+                startLocation: 'Submitted • ${app.city.isNotEmpty ? app.city : "Dammam Hub"}',
+                endDate: DateFormat('dd MMM, yyyy').format(app.estimatedActivationDate ?? app.submissionTimestamp.add(const Duration(days: 5))),
+                endLocation: 'Card Issuance • Al Rajhi',
+                stages: trackerStages,
+                itemTitle: 'Expertise Corporate Visa - Platinum',
+                itemSubtitle: 'Custodian: ${app.fullNameEnglish} • CC-305',
+                itemPriceOrValue: 'SAR ${app.monthlyLimit.toStringAsFixed(0)} / mo',
+                itemBadgeColor: AppTheme.goldLight,
+                itemBadgeTextColor: AppTheme.goldDark,
+              ),
+              const SizedBox(height: 18),
+
+              // 2. Multi-Stage Audit Trail & Identity Summary
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.border, width: 1.1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(18.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Applicant Details Row
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: AppTheme.royalBlue.withValues(alpha: 0.1),
+                          child: const Icon(Icons.person_outline_rounded, color: AppTheme.royalBlue, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                app.fullNameEnglish,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.textPrimary,
                                 ),
-                                if (i < stages.length - 1)
-                                  Container(
-                                    width: 2,
-                                    height: 32,
-                                    color: i < app.currentStageIndex
-                                        ? AppTheme.successGreen
-                                        : const Color(0xFFE2E8F0),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Iqama: ${app.iqamaNumber} • PP: ${app.passportNumber} • Mobile: ${app.mobileNumberPersonal}',
+                                style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 24),
+
+                    // Stage by Stage Breakdown
+                    for (int i = 0; i < stages.length; i++) ...[
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
+                            children: [
+                              CircleAvatar(
+                                radius: 11,
+                                backgroundColor: i < app.currentStageIndex
+                                    ? AppTheme.royalBlue
+                                    : (i == app.currentStageIndex
+                                        ? AppTheme.primaryOrange
+                                        : const Color(0xFFE2E8F0)),
+                                child: Icon(
+                                  i < app.currentStageIndex
+                                      ? Icons.check
+                                      : (i == app.currentStageIndex ? Icons.autorenew : Icons.circle),
+                                  size: 11,
+                                  color: i <= app.currentStageIndex ? Colors.white : const Color(0xFF94A3B8),
+                                ),
+                              ),
+                              if (i < stages.length - 1)
+                                Container(
+                                  width: 2,
+                                  height: 26,
+                                  color: i < app.currentStageIndex
+                                      ? AppTheme.royalBlue
+                                      : const Color(0xFFE2E8F0),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 12.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     stages[i],
                                     style: TextStyle(
-                                      fontSize: 13,
+                                      fontSize: 12.5,
                                       fontWeight: i <= app.currentStageIndex
                                           ? FontWeight.bold
                                           : FontWeight.normal,
@@ -1860,28 +2002,49 @@ class _CardApplicationScreenState extends State<CardApplicationScreen> {
                                           : AppTheme.textMuted,
                                     ),
                                   ),
-                                  Text(
-                                    i < app.currentStageIndex
-                                        ? 'Completed'
-                                        : (i == app.currentStageIndex ? 'In Progress' : 'Pending'),
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: i == app.currentStageIndex
-                                          ? AppTheme.primaryOrange
-                                          : AppTheme.textSecondary,
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                                    decoration: BoxDecoration(
+                                      color: i < app.currentStageIndex
+                                          ? const Color(0xFFEFF6FF)
+                                          : (i == app.currentStageIndex
+                                              ? AppTheme.orangeMuted
+                                              : const Color(0xFFF8FAFC)),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: i < app.currentStageIndex
+                                            ? const Color(0xFFBFDBFE)
+                                            : (i == app.currentStageIndex
+                                                ? AppTheme.orangeLight.withValues(alpha: 0.5)
+                                                : const Color(0xFFE2E8F0)),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      i < app.currentStageIndex
+                                          ? 'Completed'
+                                          : (i == app.currentStageIndex ? 'In Progress' : 'Pending'),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        color: i < app.currentStageIndex
+                                            ? AppTheme.royalBlue
+                                            : (i == app.currentStageIndex
+                                                ? AppTheme.primaryOrange
+                                                : AppTheme.textMuted),
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ],
-                  ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
 
               // SAMA Compliance Notice
               Container(
@@ -1899,6 +2062,68 @@ class _CardApplicationScreenState extends State<CardApplicationScreen> {
                       child: Text(
                         'Your application is verified against SAMA and corporate compliance guidelines. Once approved, the card will be issued by Al Rajhi Banking partner.',
                         style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
+
+              // Delete KYC Details & Re-apply Action Card
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppTheme.border, width: 1.1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.restart_alt_rounded, size: 19, color: AppTheme.primaryOrange),
+                        SizedBox(width: 8),
+                        Text(
+                          'Need to Change KYC Details or Re-apply?',
+                          style: TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'If any document or identity information was uploaded incorrectly, you can withdraw your application and delete the current KYC details. Your status will return to "New User" so you can upload fresh documents and re-apply.',
+                      style: TextStyle(fontSize: 12, color: AppTheme.textSecondary, height: 1.45),
+                    ),
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppTheme.dangerRed,
+                          side: const BorderSide(color: Color(0xFFFCA5A5), width: 1.2),
+                          backgroundColor: const Color(0xFFFEF2F2),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                        icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                        label: const Text(
+                          'Delete KYC Details & Apply Again',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                        ),
+                        onPressed: () => _handleDeleteApplication(provider),
                       ),
                     ),
                   ],

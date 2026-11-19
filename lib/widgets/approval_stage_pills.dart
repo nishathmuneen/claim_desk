@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/approval_stage.dart';
 import '../theme/app_theme.dart';
 
+/// Modern Horizontal Approval Progress Tracker for claim cards and lists.
+/// Renders an enterprise horizontal pipeline strictly in corporate Blue, Orange, White, and Gold.
 class ApprovalStagePills extends StatelessWidget {
   final List<ApprovalWorkflowStage> stages;
   final bool compact;
@@ -14,13 +16,13 @@ class ApprovalStagePills extends StatelessWidget {
 
   String _getStageShortLabel(ApprovalWorkflowStage stage) {
     final title = stage.roleTitle.toLowerCase();
-    if (title.contains('reporting') || title.contains('line') || title.contains('manager')) {
+    if (title.contains('reporting') || title.contains('line') || title.contains('manager') || title.contains('accountant')) {
       return 'L1 Mgr';
-    } else if (title.contains('division') || title.contains('head') || title.contains('vat')) {
+    } else if (title.contains('division') || title.contains('head') || title.contains('div')) {
       return 'L2 Div';
-    } else if (title.contains('section') || title.contains('ap') || title.contains('finance')) {
+    } else if (title.contains('section') || title.contains('ap') || title.contains('procure') || title.contains('lead')) {
       return 'L3 AP';
-    } else if (title.contains('sap') || title.contains('posting') || title.contains('payout') || title.contains('treasury')) {
+    } else if (title.contains('sap') || title.contains('posting') || title.contains('payout') || title.contains('treasury') || title.contains('finance')) {
       return 'L4 SAP';
     }
     return 'L${stage.stageOrder}';
@@ -32,103 +34,222 @@ class ApprovalStagePills extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (int i = 0; i < stages.length; i++) ...[
-            _buildStagePill(stages[i]),
-            if (i < stages.length - 1)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3),
-                child: Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 9,
-                  color: AppTheme.border.withValues(alpha: 0.8),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 1. Stage Labels Row (centered above nodes)
+        Row(
+          children: [
+            for (int i = 0; i < stages.length; i++)
+              Expanded(
+                child: Tooltip(
+                  message: '${stages[i].roleTitle}: ${stages[i].approverName} (${_statusString(stages[i].status)})',
+                  child: Text(
+                    _getStageShortLabel(stages[i]),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: compact ? 11.5 : 12.5,
+                      fontWeight: stages[i].isPending
+                          ? FontWeight.w900
+                          : (stages[i].isApproved ? FontWeight.w800 : FontWeight.w600),
+                      color: _getLabelColor(stages[i]),
+                      letterSpacing: 0.1,
+                    ),
+                  ),
                 ),
               ),
           ],
-        ],
-      ),
+        ),
+        const SizedBox(height: 5),
+
+        // 2. Nodes and Continuous Connecting Pipeline Row
+        Row(
+          children: [
+            for (int i = 0; i < stages.length; i++)
+              Expanded(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Continuous Connecting Line
+                    Row(
+                      children: [
+                        // Left connecting segment
+                        Expanded(
+                          child: Container(
+                            height: 2.5,
+                            color: i == 0 ? Colors.transparent : _getLeftLineColor(i),
+                          ),
+                        ),
+                        // Right connecting segment
+                        Expanded(
+                          child: Container(
+                            height: 2.5,
+                            color: i == stages.length - 1 ? Colors.transparent : _getRightLineColor(i),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Centered Circular Node
+                    _buildNode(stages[i]),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 
-  Widget _buildStagePill(ApprovalWorkflowStage stage) {
-    Color bg;
-    Color border;
-    Color textCol;
-    IconData icon;
+  String _statusString(ApprovalStatus status) {
+    switch (status) {
+      case ApprovalStatus.approved:
+        return 'Approved';
+      case ApprovalStatus.pending:
+        return 'In Review';
+      case ApprovalStatus.rejected:
+        return 'Rejected';
+      case ApprovalStatus.waiting:
+        return 'Pending Upstream';
+    }
+  }
 
+  Color _getLabelColor(ApprovalWorkflowStage stage) {
     switch (stage.status) {
       case ApprovalStatus.approved:
-        bg = const Color(0xFFECFDF5);
-        border = const Color(0xFF6EE7B7);
-        textCol = const Color(0xFF065F46);
-        icon = Icons.check_circle_rounded;
-        break;
+        return AppTheme.royalBlue;
       case ApprovalStatus.pending:
-        bg = const Color(0xFFFFF7ED);
-        border = const Color(0xFFFDBA74);
-        textCol = const Color(0xFFC2410C);
-        icon = Icons.hourglass_top_rounded;
-        break;
+        return AppTheme.primaryOrange;
       case ApprovalStatus.rejected:
-        bg = const Color(0xFFFEF2F2);
-        border = const Color(0xFFFCA5A5);
-        textCol = const Color(0xFF991B1B);
-        icon = Icons.cancel_rounded;
-        break;
+        return AppTheme.dangerRed;
       case ApprovalStatus.waiting:
-        bg = const Color(0xFFF8FAFC);
-        border = const Color(0xFFE2E8F0);
-        textCol = const Color(0xFF94A3B8);
-        icon = Icons.lock_outline_rounded;
-        break;
+        return AppTheme.textMuted;
     }
+  }
 
-    final isCurrent = stage.status == ApprovalStatus.pending;
+  Color _getLeftLineColor(int index) {
+    final prev = stages[index - 1];
+    final curr = stages[index];
 
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 6.5 : 9.0,
-        vertical: compact ? 2.5 : 4.0,
-      ),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(
-          color: border,
-          width: isCurrent ? 1.4 : 1.0,
-        ),
-        boxShadow: isCurrent
-            ? [
-                BoxShadow(
-                  color: AppTheme.primaryOrange.withValues(alpha: 0.15),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ]
-            : null,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: compact ? 11 : 13, color: textCol),
-          const SizedBox(width: 4),
-          Text(
-            _getStageShortLabel(stage),
-            style: TextStyle(
-              fontSize: compact ? 10.0 : 11.0,
-              fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
-              color: textCol,
-              letterSpacing: 0.2,
+    if (prev.isApproved && curr.isApproved) {
+      return AppTheme.royalBlue;
+    } else if (prev.isApproved && curr.isPending) {
+      return AppTheme.primaryOrange;
+    } else if (prev.isApproved && curr.isRejected) {
+      return AppTheme.dangerRed;
+    } else if (prev.isRejected) {
+      return AppTheme.dangerRed;
+    }
+    return const Color(0xFFE2E8F0);
+  }
+
+  Color _getRightLineColor(int index) {
+    final curr = stages[index];
+    final next = stages[index + 1];
+
+    if (curr.isApproved && next.isApproved) {
+      return AppTheme.royalBlue;
+    } else if (curr.isApproved && next.isPending) {
+      return AppTheme.primaryOrange;
+    } else if (curr.isApproved && next.isRejected) {
+      return AppTheme.dangerRed;
+    } else if (curr.isRejected) {
+      return AppTheme.dangerRed;
+    }
+    return const Color(0xFFE2E8F0);
+  }
+
+  Widget _buildNode(ApprovalWorkflowStage stage) {
+    switch (stage.status) {
+      case ApprovalStatus.approved:
+        return Container(
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            color: AppTheme.royalBlue,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.royalBlue.withValues(alpha: 0.3),
+                blurRadius: 3,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: const Center(
+            child: Icon(Icons.check_rounded, size: 12, color: Colors.white),
+          ),
+        );
+
+      case ApprovalStatus.pending:
+        return Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(
+            color: AppTheme.orangeMuted,
+            shape: BoxShape.circle,
+            border: Border.all(color: AppTheme.primaryOrange, width: 2.0),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.primaryOrange.withValues(alpha: 0.35),
+                blurRadius: 5,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: const Center(
+            child: Icon(
+              Icons.autorenew_rounded,
+              size: 13,
+              color: AppTheme.primaryOrange,
             ),
           ),
-        ],
-      ),
-    );
+        );
+
+      case ApprovalStatus.rejected:
+        return Container(
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            color: const Color(0xFFFEF2F2),
+            shape: BoxShape.circle,
+            border: Border.all(color: AppTheme.dangerRed, width: 1.8),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.dangerRed.withValues(alpha: 0.25),
+                blurRadius: 3,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: const Center(
+            child: Icon(Icons.close_rounded, size: 12, color: AppTheme.dangerRed),
+          ),
+        );
+
+      case ApprovalStatus.waiting:
+        return Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(color: const Color(0xFFCBD5E1), width: 1.4),
+          ),
+          child: Center(
+            child: Container(
+              width: 4,
+              height: 4,
+              decoration: const BoxDecoration(
+                color: Color(0xFF94A3B8),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        );
+    }
   }
 }
-

@@ -19,6 +19,18 @@ class AppTheme {
   static const Color orangeDark = Color(0xFFEA580C);
   static const Color orangeMuted = Color(0xFFFFF7ED); // Soft warm tinted background
 
+  // Royal & Corporate Blues (Reference Tracker Design)
+  static const Color royalBlue = Color(0xFF1E3A8A); // Deep Royal Blue for IDs & headers
+  static const Color blueAccent = Color(0xFF2563EB); // Vibrant Corporate Blue
+  static const Color blueSoft = Color(0xFFEFF6FF); // Soft Blue Tint for badges & pills
+
+  // Saudi Vision Corporate Gold (SAMA / Al Rajhi Corporate Banking)
+  static const Color goldPrimary = Color(0xFFD97706); // Rich Saudi Gold (Amber 600)
+  static const Color goldMetallic = Color(0xFFC5A059); // Metallic Gold for Cards & Emblems
+  static const Color goldLight = Color(0xFFFEF3C7); // Soft Gold Background Tint
+  static const Color goldBorder = Color(0xFFFCD34D); // Crisp Gold Accent Border
+  static const Color goldDark = Color(0xFF92400E); // Deep Gold Text
+
   // Functional & Status Colors
   static const Color successGreen = Color(0xFF059669);
   static const Color successLight = Color(0xFFECFDF5);
@@ -50,6 +62,16 @@ class AppTheme {
         error: dangerRed,
       ),
       fontFamily: 'Segoe UI',
+      fontFamilyFallback: const ['SF Pro Display', 'Segoe UI', 'Roboto', 'Arial'],
+      textTheme: const TextTheme(
+        headlineLarge: TextStyle(fontSize: 26, fontWeight: FontWeight.w900, color: textPrimary, letterSpacing: -0.5),
+        headlineMedium: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: textPrimary, letterSpacing: -0.3),
+        titleLarge: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: textPrimary),
+        titleMedium: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: textPrimary),
+        bodyLarge: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w500, color: textPrimary),
+        bodyMedium: TextStyle(fontSize: 13.0, fontWeight: FontWeight.w500, color: textSecondary),
+        labelLarge: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: textPrimary),
+      ),
       cardTheme: CardThemeData(
         color: surface,
         elevation: 0,

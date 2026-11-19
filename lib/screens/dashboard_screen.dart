@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/claim_desk_provider.dart';
 import '../widgets/active_card_card.dart';
 import '../widgets/approval_stage_pills.dart';
+import '../widgets/modern_horizontal_tracker_card.dart';
 import '../models/expense_claim.dart';
 import '../models/card_refill_request.dart';
 import '../models/card_application.dart';
@@ -247,23 +249,24 @@ class DashboardScreen extends StatelessWidget {
                 const Text(
                   'FINANCIAL OVERVIEW',
                   style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.textMuted,
-                    letterSpacing: 1.0,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF0F172A),
+                    letterSpacing: 0.8,
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEFF4FF),
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFBFDBFE), width: 1.0),
                   ),
                   child: const Text(
                     'Live Ledger',
                     style: TextStyle(
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 11.0,
+                      fontWeight: FontWeight.w800,
                       color: AppTheme.infoBlue,
                     ),
                   ),
@@ -363,10 +366,10 @@ class DashboardScreen extends StatelessWidget {
             const Text(
               'CLAIM STATUS BREAKDOWN',
               style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.textMuted,
-                letterSpacing: 1.0,
+                fontSize: 13.5,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF0F172A),
+                letterSpacing: 0.8,
               ),
             ),
             const SizedBox(height: 10),
@@ -436,10 +439,10 @@ class DashboardScreen extends StatelessWidget {
             const Text(
               'QUICK ACTIONS',
               style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.textMuted,
-                letterSpacing: 1.0,
+                fontSize: 13.5,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF0F172A),
+                letterSpacing: 0.8,
               ),
             ),
             const SizedBox(height: 10),
@@ -448,10 +451,10 @@ class DashboardScreen extends StatelessWidget {
                 Expanded(
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    icon: const Icon(Icons.add, size: 17),
-                    label: const Text('New Claim', style: TextStyle(fontSize: 13)),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('New Claim', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
                     onPressed: () {
                       if (!provider.activeUser.hasActiveCard) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -470,12 +473,12 @@ class DashboardScreen extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                      side: const BorderSide(color: AppTheme.primaryOrange, width: 1.2),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: const BorderSide(color: AppTheme.primaryOrange, width: 1.4),
                       foregroundColor: AppTheme.primaryOrange,
                     ),
-                    icon: const Icon(Icons.document_scanner, size: 17),
-                    label: const Text('AI OCR Scan', style: TextStyle(fontSize: 13)),
+                    icon: const Icon(Icons.document_scanner, size: 18),
+                    label: const Text('AI OCR Scan', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
                     onPressed: () async {
                       final scannedData = await Navigator.push(
                         context,
@@ -502,10 +505,11 @@ class DashboardScreen extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
                     ),
-                    icon: const Icon(Icons.badge_outlined, size: 16),
-                    label: const Text('Apply for Card', style: TextStyle(fontSize: 12)),
+                    icon: const Icon(Icons.badge_outlined, size: 17),
+                    label: const Text('Apply for Card', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -520,10 +524,11 @@ class DashboardScreen extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
                     ),
-                    icon: const Icon(Icons.bolt, size: 16, color: AppTheme.primaryOrange),
-                    label: const Text('Request Refill', style: TextStyle(fontSize: 12)),
+                    icon: const Icon(Icons.bolt, size: 17, color: AppTheme.primaryOrange),
+                    label: const Text('Request Refill', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
                     onPressed: () {
                       if (!provider.activeUser.hasActiveCard) {
                         ScaffoldMessenger.of(context).showSnackBar(
@@ -549,10 +554,10 @@ class DashboardScreen extends StatelessWidget {
                 const Text(
                   'RECENT CLAIMS',
                   style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.textMuted,
-                    letterSpacing: 1.0,
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF0F172A),
+                    letterSpacing: 0.8,
                   ),
                 ),
                 TextButton(
@@ -561,8 +566,8 @@ class DashboardScreen extends StatelessWidget {
                     'View All',
                     style: TextStyle(
                       color: AppTheme.primaryOrange,
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
@@ -651,21 +656,21 @@ class DashboardScreen extends StatelessWidget {
                   child: Icon(icon, color: iconColor, size: 17),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: highlight ? const Color(0xFFFEE2E2) : const Color(0xFFF8FAFC),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: highlight ? const Color(0xFFFCA5A5) : const Color(0xFFE2E8F0),
-                      width: 0.8,
+                      color: highlight ? const Color(0xFFFCA5A5) : const Color(0xFFCBD5E1),
+                      width: 1.0,
                     ),
                   ),
                   child: Text(
                     pillText,
                     style: TextStyle(
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w700,
-                      color: highlight ? const Color(0xFFDC2626) : const Color(0xFF64748B),
+                      fontSize: 11.0,
+                      fontWeight: FontWeight.w800,
+                      color: highlight ? const Color(0xFFDC2626) : const Color(0xFF475569),
                     ),
                   ),
                 ),
@@ -679,20 +684,20 @@ class DashboardScreen extends StatelessWidget {
                 Text(
                   count,
                   style: TextStyle(
-                    fontSize: 22,
+                    fontSize: 25,
                     fontWeight: FontWeight.w900,
                     color: highlight ? const Color(0xFFDC2626) : const Color(0xFF0F172A),
-                    fontFamily: 'monospace',
+                    letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 7),
                 Expanded(
                   child: Text(
                     title,
                     style: TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
-                      color: highlight ? const Color(0xFF991B1B) : const Color(0xFF1E293B),
+                      fontSize: 14.0,
+                      fontWeight: FontWeight.w800,
+                      color: highlight ? const Color(0xFF991B1B) : const Color(0xFF0F172A),
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -700,13 +705,13 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 4),
             Text(
               subtitle,
               style: const TextStyle(
-                fontSize: 10,
-                color: Color(0xFF94A3B8),
-                fontWeight: FontWeight.w500,
+                fontSize: 11.5,
+                color: Color(0xFF475569),
+                fontWeight: FontWeight.w600,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -792,16 +797,16 @@ class DashboardScreen extends StatelessWidget {
                             Text(
                               claim.docRefNumber,
                               style: const TextStyle(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 15.0,
+                                fontWeight: FontWeight.w800,
                                 color: AppTheme.textPrimary,
                               ),
                             ),
                             Text(
                               'SAR ${claim.grandTotal.toStringAsFixed(2)}',
                               style: const TextStyle(
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w900,
                                 color: AppTheme.primaryOrange,
                               ),
                             ),
@@ -812,10 +817,14 @@ class DashboardScreen extends StatelessWidget {
                           claim.description,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 13.0,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF334155),
+                          ),
                         ),
                         if (claim.isZatcaVerified || claim.approvalStages.any((s) => s.remainingSlaHours != null)) ...[
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 5),
                           Wrap(
                             spacing: 6,
                             runSpacing: 4,
@@ -823,14 +832,15 @@ class DashboardScreen extends StatelessWidget {
                             children: [
                               if (claim.isZatcaVerified)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFECFDF5),
-                                    borderRadius: BorderRadius.circular(4),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: const Color(0xFFA7F3D0), width: 0.8),
                                   ),
                                   child: const Text(
                                     '✓ ZATCA Valid',
-                                    style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Color(0xFF047857)),
+                                    style: TextStyle(fontSize: 11.0, fontWeight: FontWeight.w800, color: Color(0xFF047857)),
                                   ),
                                 ),
                               if (claim.approvalStages.any((s) => s.remainingSlaHours != null)) ...[
@@ -838,14 +848,15 @@ class DashboardScreen extends StatelessWidget {
                                   builder: (_) {
                                     final activeStage = claim.approvalStages.firstWhere((s) => s.remainingSlaHours != null);
                                     return Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFFFF7ED),
-                                        borderRadius: BorderRadius.circular(4),
+                                        borderRadius: BorderRadius.circular(6),
+                                        border: Border.all(color: const Color(0xFFFED7AA), width: 0.8),
                                       ),
                                       child: Text(
                                         '⏱ ${activeStage.remainingSlaHours}h SLA',
-                                        style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: AppTheme.primaryOrange),
+                                        style: const TextStyle(fontSize: 11.0, fontWeight: FontWeight.w800, color: AppTheme.primaryOrange),
                                       ),
                                     );
                                   },
@@ -860,20 +871,20 @@ class DashboardScreen extends StatelessWidget {
                           children: [
                             Text(
                               '${claim.lines.length} items • ${_formatDate(claim.claimDate)}',
-                              style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
+                              style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                               decoration: BoxDecoration(
                                 color: statusBg,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: statusColor.withValues(alpha: 0.35)),
+                                border: Border.all(color: statusColor.withValues(alpha: 0.45)),
                               ),
                               child: Text(
                                 statusLabel,
                                 style: TextStyle(
-                                  fontSize: 10.5,
-                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12.0,
+                                  fontWeight: FontWeight.w800,
                                   color: statusColor,
                                 ),
                               ),
@@ -886,15 +897,16 @@ class DashboardScreen extends StatelessWidget {
                 ],
               ),
               if (claim.approvalStages.isNotEmpty) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 Padding(
-                  padding: const EdgeInsets.only(top: 6),
+                  padding: const EdgeInsets.only(top: 8, bottom: 4),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: ApprovalStagePills(stages: claim.approvalStages),
                       ),
+                      const SizedBox(width: 8),
                       const Icon(Icons.arrow_forward_ios_rounded, size: 11, color: AppTheme.textMuted),
                     ],
                   ),
@@ -956,7 +968,7 @@ class DashboardScreen extends StatelessWidget {
                   child: Icon(icon, color: iconColor, size: 17),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: badgeBg,
                     borderRadius: BorderRadius.circular(12),
@@ -964,8 +976,8 @@ class DashboardScreen extends StatelessWidget {
                   child: Text(
                     badgeText,
                     style: TextStyle(
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 11.0,
+                      fontWeight: FontWeight.w800,
                       color: badgeColor,
                       letterSpacing: 0.2,
                     ),
@@ -978,10 +990,10 @@ class DashboardScreen extends StatelessWidget {
             Text(
               title,
               style: const TextStyle(
-                fontSize: 9.5,
+                fontSize: 11.5,
                 fontWeight: FontWeight.w800,
-                color: Color(0xFF64748B),
-                letterSpacing: 0.7,
+                color: Color(0xFF334155),
+                letterSpacing: 0.5,
               ),
             ),
             const SizedBox(height: 4),
@@ -994,21 +1006,20 @@ class DashboardScreen extends StatelessWidget {
                   Text(
                     currency,
                     style: TextStyle(
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w700,
-                      color: valueColor.withValues(alpha: 0.75),
+                      fontSize: 13.0,
+                      fontWeight: FontWeight.w800,
+                      color: valueColor.withValues(alpha: 0.85),
                     ),
                   ),
-                  const SizedBox(width: 3),
+                  const SizedBox(width: 4),
                 ],
                 Expanded(
                   child: Text(
                     value,
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 23,
                       fontWeight: FontWeight.w900,
                       color: valueColor,
-                      fontFamily: 'monospace',
                       letterSpacing: -0.5,
                     ),
                     maxLines: 1,
@@ -1036,9 +1047,9 @@ class DashboardScreen extends StatelessWidget {
               Text(
                 subtitle,
                 style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF94A3B8),
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF475569),
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -1131,11 +1142,12 @@ class DashboardScreen extends StatelessWidget {
                 children: [
                   Text(
                     'Card Application ${cardApp.id}',
-                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                    style: const TextStyle(fontSize: 14.0, fontWeight: FontWeight.w800, color: AppTheme.textPrimary),
                   ),
+                  const SizedBox(height: 2),
                   Text(
                     'Status: ${cardApp.statusDisplay} (Tap to track)',
-                    style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                    style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
                   ),
                 ],
               ),
@@ -1148,138 +1160,73 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildApplicationInProgressHero(BuildContext context, CardApplication cardApp) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF1E2B45),
-            Color(0xFF131D31),
-            Color(0xFF0D1322),
-          ],
-        ),
-        border: Border.all(
-          color: AppTheme.primaryOrange.withValues(alpha: 0.6),
-          width: 1.4,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0D1322).withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
+    final trackerStages = [
+      TrackerStageItem(
+        label: 'KYC Form',
+        isCompleted: cardApp.currentStageIndex >= 1,
+        isActive: cardApp.currentStageIndex == 0,
       ),
+      TrackerStageItem(
+        label: 'Manager',
+        isCompleted: cardApp.currentStageIndex >= 2,
+        isActive: cardApp.currentStageIndex == 1,
+      ),
+      TrackerStageItem(
+        label: 'Finance AP',
+        isCompleted: cardApp.currentStageIndex >= 3,
+        isActive: cardApp.currentStageIndex == 2,
+      ),
+      TrackerStageItem(
+        label: 'Embossing',
+        isCompleted: cardApp.currentStageIndex >= 4,
+        isActive: cardApp.currentStageIndex == 3,
+      ),
+      TrackerStageItem(
+        label: 'Active Card',
+        isCompleted: cardApp.currentStageIndex >= 5,
+        isActive: cardApp.currentStageIndex == 4,
+      ),
+    ];
+
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const CardApplicationScreen()),
+        );
+      },
+      borderRadius: BorderRadius.circular(22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(7),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryOrange.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.hourglass_top, color: AppTheme.primaryOrange, size: 20),
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'CARD APPLICATION IN REVIEW',
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.8,
-                          color: Color(0xFFCBD5E1),
-                        ),
-                      ),
-                      Text(
-                        cardApp.id,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryOrange.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.primaryOrange, width: 1.0),
-                ),
-                child: Text(
-                  cardApp.statusDisplay,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryOrange,
-                  ),
-                ),
-              ),
-            ],
+          ModernHorizontalTrackerCard(
+            id: cardApp.id,
+            statusLabel: cardApp.statusDisplay,
+            statusColor: cardApp.status == ApplicationStatus.active
+                ? AppTheme.royalBlue
+                : AppTheme.primaryOrange,
+            startDate: DateFormat('dd MMM, yyyy').format(cardApp.submissionTimestamp),
+            startLocation: 'Submitted • ${cardApp.city.isNotEmpty ? cardApp.city : "Dammam Hub"}',
+            endDate: DateFormat('dd MMM, yyyy').format(cardApp.estimatedActivationDate ?? cardApp.submissionTimestamp.add(const Duration(days: 5))),
+            endLocation: 'Card Issuance • Al Rajhi',
+            stages: trackerStages,
+            itemTitle: 'Expertise Corporate Visa - Platinum',
+            itemSubtitle: '${cardApp.projectWbsCode} • ${cardApp.operatingSiteLocation}',
+            itemPriceOrValue: 'SAR ${cardApp.monthlyLimit.toStringAsFixed(0)} / mo',
+            itemBadgeColor: AppTheme.goldLight,
+            itemBadgeTextColor: AppTheme.goldDark,
           ),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Target Card Limit:', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
-                    Text('SAR ${cardApp.monthlyLimit.toStringAsFixed(0)} / month', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12.5)),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Project WBS / Site:', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
-                    Text('${cardApp.projectWbsCode} • ${cardApp.operatingSiteLocation}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 11.5)),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Approval Stage:', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
-                    Text('Stage 3 of 5 (Finance AP Approval)', style: TextStyle(color: AppTheme.primaryOrange, fontWeight: FontWeight.bold, fontSize: 12)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryOrange,
+                backgroundColor: AppTheme.royalBlue,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 11),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
-              icon: const Icon(Icons.timeline, size: 17),
+              icon: const Icon(Icons.timeline_rounded, size: 17),
               label: const Text('Track Approval Pipeline & View KYC', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
               onPressed: () {
                 Navigator.push(
@@ -1289,9 +1236,81 @@ class DashboardScreen extends StatelessWidget {
               },
             ),
           ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.dangerRed,
+                side: const BorderSide(color: Color(0xFFFCA5A5), width: 1.1),
+                backgroundColor: const Color(0xFFFEF2F2),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              icon: const Icon(Icons.delete_outline_rounded, size: 16),
+              label: const Text('Delete KYC Details & Re-apply', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12.5)),
+              onPressed: () => _confirmDeleteKycApplication(context, context.read<ClaimDeskProvider>()),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _confirmDeleteKycApplication(BuildContext context, ClaimDeskProvider provider) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.delete_outline_rounded, color: AppTheme.dangerRed, size: 24),
+            SizedBox(width: 8),
+            Text('Delete KYC Details?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          ],
+        ),
+        content: const Text(
+          'Are you sure you want to delete your submitted KYC application details?\n\n'
+          'This will cancel the pending review and reset your profile status back to "New User". You will be able to upload fresh documents and re-apply immediately.',
+          style: TextStyle(fontSize: 13, color: AppTheme.textSecondary, height: 1.45),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Keep Application', style: TextStyle(color: AppTheme.textSecondary)),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.dangerRed,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            icon: const Icon(Icons.delete_outline, size: 16),
+            label: const Text('Delete & Re-apply'),
+            onPressed: () => Navigator.pop(ctx, true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      provider.deleteCardApplication();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle_outline, color: Colors.white, size: 18),
+              SizedBox(width: 8),
+              Text('KYC details deleted. You are now reset to New User.'),
+            ],
+          ),
+          backgroundColor: AppTheme.navyDark,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Widget _buildKycRequiredHero(BuildContext context, UserProfile user) {

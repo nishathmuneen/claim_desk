@@ -876,9 +876,9 @@ class _ClaimsHistoryScreenState extends State<ClaimsHistoryScreen> {
                           ],
                         ),
                         if (claim.approvalStages.isNotEmpty) ...[
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
                           Container(
-                            padding: const EdgeInsets.only(top: 8),
+                            padding: const EdgeInsets.only(top: 10, bottom: 4),
                             decoration: BoxDecoration(
                               border: Border(top: BorderSide(color: AppTheme.border.withValues(alpha: 0.6))),
                             ),
@@ -888,7 +888,7 @@ class _ClaimsHistoryScreenState extends State<ClaimsHistoryScreen> {
                                 Expanded(
                                   child: ApprovalStagePills(stages: claim.approvalStages),
                                 ),
-                                const SizedBox(width: 6),
+                                const SizedBox(width: 8),
                                 const Icon(Icons.chevron_right, size: 16, color: AppTheme.textMuted),
                               ],
                             ),

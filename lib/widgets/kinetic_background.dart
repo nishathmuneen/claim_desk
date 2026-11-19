@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Kinetic Corporate Precision background inspired by the Stitch corporate card platform.
-/// Features a crisp enterprise gradient (#F8FAFF -> #F1F5F9 -> #EFF4FF) with
-/// 45° directional chevron watermarks, hairline velocity rules, and subtle ambient highlights.
+/// Kinetic Corporate Precision background with prominent golden-shaded theme lines.
+/// Features a crisp enterprise gradient with richer, darker golden directional
+/// velocity lines and warm amber chevron watermarks inspired by executive corporate branding.
 class KineticBackground extends StatelessWidget {
   final Widget child;
 
@@ -16,9 +16,9 @@ class KineticBackground extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color(0xFFF8FAFF),
-            Color(0xFFF1F5F9),
-            Color(0xFFEFF4FF),
+            Color(0xFFFDFBF7), // Warm subtle ivory-gold top
+            Color(0xFFF8FAFC), // Crisp clean card base
+            Color(0xFFF3F6FC), // Soft blue-tinted base
           ],
           stops: [0.0, 0.45, 1.0],
         ),
@@ -26,7 +26,7 @@ class KineticBackground extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // Subtle kinetic directional chevrons & velocity lines watermark layer
+          // Dynamic Golden Directional Velocity Lines & Watermark Layer
           Positioned.fill(
             child: RepaintBoundary(
               child: CustomPaint(
@@ -47,29 +47,53 @@ class _KineticCanvasPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    // 1. Subtle hairline 45° velocity lines across the background
-    final guideLinePaint = Paint()
-      ..color = const Color(0xFF1E2B45).withValues(alpha: 0.022)
+    // 1. Prominent Darker Golden Velocity Lines (Rich Amber / Gold shaded theme lines)
+    final goldLinePaint = Paint()
+      ..color = const Color(0xFFD97706).withValues(alpha: 0.16)
+      ..strokeWidth = 1.6
+      ..style = PaintingStyle.stroke;
+
+    final goldAccentPaint = Paint()
+      ..color = const Color(0xFFF59E0B).withValues(alpha: 0.22)
+      ..strokeWidth = 2.0
+      ..style = PaintingStyle.stroke;
+
+    final goldHairlinePaint = Paint()
+      ..color = const Color(0xFFB45309).withValues(alpha: 0.08)
       ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
 
-    const lineSpacing = 110.0;
-    for (double offset = -h; offset < w + h; offset += lineSpacing) {
+    // Draw parallel golden lines angled at ~38° across the entire canvas
+    const lineSpacing = 65.0;
+    int lineIndex = 0;
+    for (double offset = -h * 1.5; offset < w + h * 1.5; offset += lineSpacing) {
+      lineIndex++;
+      final isAccent = lineIndex % 3 == 0;
+      final isHairline = lineIndex % 6 == 1;
+
+      Paint paintToUse;
+      if (isAccent) {
+        paintToUse = goldAccentPaint;
+      } else if (isHairline) {
+        paintToUse = goldHairlinePaint;
+      } else {
+        paintToUse = goldLinePaint;
+      }
+
       canvas.drawLine(
         Offset(offset, 0),
-        Offset(offset + h * 0.7, h),
-        guideLinePaint,
+        Offset(offset + h * 0.85, h),
+        paintToUse,
       );
     }
 
-    // 2. Primary Corporate Navy 45° Chevron Ribbons
-    final navyChevronPaint = Paint()
-      ..color = const Color(0xFF182245).withValues(alpha: 0.028)
+    // 2. Warm Golden & Orange Kinetic Chevron Watermarks
+    final goldChevronPaint = Paint()
+      ..color = const Color(0xFFD97706).withValues(alpha: 0.045)
       ..style = PaintingStyle.fill;
 
-    // 3. Energy Orange Kinetic Accent Chevron Ribbons
     final orangeChevronPaint = Paint()
-      ..color = const Color(0xFFF97316).withValues(alpha: 0.038)
+      ..color = const Color(0xFFF97316).withValues(alpha: 0.055)
       ..style = PaintingStyle.fill;
 
     const colSpacing = 180.0;
@@ -96,27 +120,27 @@ class _KineticCanvasPainter extends CustomPainter {
           ..lineTo(x + ribbonWidth, staggeredY)
           ..close();
 
-        // Highlight every 4th tile with subtle energy orange
-        final isOrangeAccent = (colIndex + rowIndex) % 5 == 0;
+        // Highlight with energy orange accent on staggered intervals
+        final isOrangeAccent = (colIndex + rowIndex) % 4 == 0;
         canvas.drawPath(
           path,
-          isOrangeAccent ? orangeChevronPaint : navyChevronPaint,
+          isOrangeAccent ? orangeChevronPaint : goldChevronPaint,
         );
       }
     }
 
-    // 4. Subtle top-right ambient warmth radial vignette
-    final ambientPaint = Paint()
+    // 3. Ambient Golden Glow Vignette (Top-Right and Bottom-Left)
+    final topAmbientPaint = Paint()
       ..shader = RadialGradient(
-        center: const Alignment(0.85, -0.9),
-        radius: 0.8,
+        center: const Alignment(0.85, -0.85),
+        radius: 0.9,
         colors: [
-          const Color(0xFFF97316).withValues(alpha: 0.035),
+          const Color(0xFFD97706).withValues(alpha: 0.06),
           Colors.transparent,
         ],
       ).createShader(Rect.fromLTWH(0, 0, w, h));
 
-    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), ambientPaint);
+    canvas.drawRect(Rect.fromLTWH(0, 0, w, h), topAmbientPaint);
   }
 
   @override

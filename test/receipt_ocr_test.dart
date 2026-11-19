@@ -7,6 +7,26 @@ import 'package:claimdesk/services/receipt_ocr_service.dart';
 import 'package:claimdesk/screens/new_claim_screen.dart';
 
 void main() {
+  test('ReceiptOcrService correctly extracts Saudi Bilingual Tax Invoice Layout (Tech Supplies Co.)', () {
+    final doc = PickedDocument(
+      name: 'Saudi Bilingual Tax Invoice Layout.png',
+      sizeInBytes: 1024 * 1024,
+      isImage: true,
+      extension: 'png',
+    );
+
+    final result = ReceiptOcrService.analyzeReceipt(doc, 15.0);
+
+    expect(result.merchantName, 'Tech Supplies Co.');
+    expect(result.invoiceNumber, 'INV-2026-0887');
+    expect(result.category, 'Hardware & Tools');
+    expect(result.baseAmount, 1036.25);
+    expect(result.vatAmount, 155.44);
+    expect(result.totalAmount, 1191.69);
+    expect(result.confidenceScore, greaterThan(0.95));
+    expect(result.justification, contains('Wireless Mouse'));
+  });
+
   test('ReceiptOcrService correctly extracts Bilingual Saudi Transport Receipt', () {
     final doc = PickedDocument(
       name: 'Bilingual Saudi Transport Receipt.png',
@@ -17,7 +37,7 @@ void main() {
 
     final result = ReceiptOcrService.analyzeReceipt(doc, 15.0);
 
-    expect(result.merchantName, 'Al Yamamah Transport Services (اليمامة لخدمات النقل)');
+    expect(result.merchantName, 'Al Yamamah Transport Services');
     expect(result.invoiceNumber, 'TR-2026-0148');
     expect(result.category, 'Site Transport & Logistics');
     expect(result.totalAmount, 250.0);
@@ -35,7 +55,7 @@ void main() {
       'baseAmount': 217.39,
       'vatAmount': 32.61,
       'totalAmount': 250.0,
-      'merchantName': 'Al Yamamah Transport Services (اليمامة لخدمات النقل)',
+      'merchantName': 'Al Yamamah Transport Services',
       'attachmentName': 'Bilingual Saudi Transport Receipt.png',
       'justification': 'Transportation of company materials / goods.',
       'projectCostCenter': 'Aramco Ras Tanura Refinery (CC-402)',

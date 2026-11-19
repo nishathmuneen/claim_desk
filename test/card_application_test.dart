@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:claimdesk/models/card_application.dart';
 import 'package:claimdesk/models/picked_document.dart';
 import 'package:claimdesk/models/user_profile.dart';
 import 'package:claimdesk/providers/claim_desk_provider.dart';
@@ -41,8 +42,9 @@ void main() {
   });
 
   test('KycDocumentExtractionService translates Arabic Iqama for active profile', () {
+    final majid = UserProfile.demoUsers.firstWhere((u) => u.name == 'Majid Al-Dossary');
     const doc = PickedDocument(name: 'iqama_majid_arabic.jpg', sizeInBytes: 240000, isImage: true);
-    final result = KycDocumentExtractionService.extractFromIqama(doc, UserProfile.demoUsers[2]);
+    final result = KycDocumentExtractionService.extractFromIqama(doc, majid);
 
     expect(result.translatedFromArabic, isTrue);
     expect(result.fullNameEnglish, 'Majid Al-Dossary');
@@ -55,13 +57,14 @@ void main() {
   });
 
   test('KycDocumentExtractionService extracts JOMAR MANANSALA VENANCIO from uploaded Iqama and Passport', () {
+    final majid = UserProfile.demoUsers.firstWhere((u) => u.name == 'Majid Al-Dossary');
     const iqamaDoc = PickedDocument(
       name: 'media_1795063768231_ce3aaab0.jpg',
       sizeInBytes: 50940,
       isImage: true,
       extension: 'jpg',
     );
-    final iqamaResult = KycDocumentExtractionService.extractFromIqama(iqamaDoc, UserProfile.demoUsers[2]);
+    final iqamaResult = KycDocumentExtractionService.extractFromIqama(iqamaDoc, majid);
 
     expect(iqamaResult.translatedFromArabic, isTrue);
     expect(iqamaResult.fullNameEnglish, 'Jomar Manansala Venancio');
@@ -81,7 +84,7 @@ void main() {
       isImage: true,
       extension: 'jpg',
     );
-    final passportResult = KycDocumentExtractionService.extractFromPassport(passportDoc, UserProfile.demoUsers[2]);
+    final passportResult = KycDocumentExtractionService.extractFromPassport(passportDoc, majid);
 
     expect(passportResult.fullNameEnglish, 'Jomar Manansala Venancio');
     expect(passportResult.nationality, 'India');
@@ -93,13 +96,14 @@ void main() {
   });
 
   test('KycDocumentExtractionService extracts ARUN KUMAR NAIR from newly uploaded sample Iqama', () {
+    final majid = UserProfile.demoUsers.firstWhere((u) => u.name == 'Majid Al-Dossary');
     const iqamaDoc = PickedDocument(
       name: 'media_1795066999367_3c78c907.jpg',
       sizeInBytes: 329589,
       isImage: true,
       extension: 'jpg',
     );
-    final iqamaResult = KycDocumentExtractionService.extractFromIqama(iqamaDoc, UserProfile.demoUsers[2]);
+    final iqamaResult = KycDocumentExtractionService.extractFromIqama(iqamaDoc, majid);
 
     expect(iqamaResult.translatedFromArabic, isTrue);
     expect(iqamaResult.fullNameEnglish, 'Arun Kumar Nair');
@@ -117,8 +121,9 @@ void main() {
   testWidgets('CardApplicationScreen shows 3-doc uploads, labeled identity text boxes, and translates Arabic input to English',
       (WidgetTester tester) async {
     final provider = ClaimDeskProvider();
+    final majid = UserProfile.demoUsers.firstWhere((u) => u.name == 'Majid Al-Dossary');
     // Switch to Majid Al-Dossary (new employee with no card application yet)
-    provider.switchUser(UserProfile.demoUsers[2]);
+    provider.switchUser(majid);
 
     await tester.pumpWidget(
       MultiProvider(
@@ -181,5 +186,179 @@ void main() {
     final bytes = base64Decode(cleanBase64.replaceAll(RegExp(r'\s+'), ''));
     expect(bytes, isNotEmpty);
     expect(bytes.length, greaterThan(10));
+  });
+
+  test('New User starts with no active application, submits to Card Awaited, and can delete and reset', () {
+    final provider = ClaimDeskProvider();
+    final majid = UserProfile.demoUsers.firstWhere((u) => u.name == 'Majid Al-Dossary');
+    provider.switchUser(majid);
+
+    // 1. Initially New User (no application)
+    expect(provider.activeCardApplication, isNull);
+    expect(provider.hasCardApplication(majid.id), isFalse);
+
+    // 2. Submit application
+    final app = CardApplication(
+      id: 'APP-2026-100',
+      fullNameEnglish: 'Majid Al-Dossary',
+      fullNameArabic: 'ماجد الدوسري',
+      nationality: 'Saudi Arabia',
+      dateOfBirth: DateTime(1992, 5, 14),
+      iqamaNumber: '2501928374',
+      iqamaExpiryDateGregorian: DateTime(2028, 8, 20),
+      iqamaExpiryDateHijri: '1450/02/29',
+      passportNumber: 'N8492014',
+      passportIssueDate: DateTime(2022, 1, 10),
+      passportExpiryDate: DateTime(2032, 1, 9),
+      mobileNumberPersonal: '+966 56 332 1144',
+      mobileNumberOfficial: '+966 56 000 0000',
+      emailOfficial: 'm.dossary@expertise.sa',
+      shortAddressCode: 'JAZ4109',
+      buildingNumber: '4012',
+      streetName: 'Corniche Rd',
+      district: 'Al-Shati',
+      city: 'Jazan',
+      postalCode: '45142',
+      employeeId: majid.employeeId,
+      designation: majid.designation,
+      employeeGrade: 'Band-B',
+      company: majid.company,
+      division: majid.division,
+      department: majid.department,
+      costCenter: majid.costCenter,
+      reportingManagerName: 'Rajesh M. Shetty',
+      reportingManagerId: 'EMP-1002',
+      projectWbsCode: 'PRJ-2026-JAZAN',
+      operatingSiteLocation: majid.division,
+      cardFormat: CardFormat.physicalPlastic,
+      embossedName: 'MAJID AL-DOSSARY',
+      monthlyLimit: 5000.0,
+      singleTransactionCap: 2000.0,
+      dailySpendingCap: 3000.0,
+      authorizedCategories: const ['Fuel & Fleet'],
+      deliveryPreference: 'Site Courier',
+      personalIban: 'SA0380000000608010167519',
+      bankName: 'Al Rajhi Bank',
+      emergencyContactName: '',
+      emergencyContactMobile: '',
+      emergencyRelation: '',
+      termsAccepted: true,
+      submissionTimestamp: DateTime.now(),
+      status: ApplicationStatus.submitted,
+    );
+
+    provider.submitCardApplication(app);
+
+    // 3. User is now Card Awaited
+    expect(provider.activeCardApplication, isNotNull);
+    expect(provider.hasCardApplication(majid.id), isTrue);
+    expect(provider.activeCardApplication!.statusDisplay, 'Submitted & SAMA KYC Pending');
+
+    // 4. Delete application: resets user back to New User
+    provider.deleteCardApplication();
+    expect(provider.activeCardApplication, isNull);
+    expect(provider.hasCardApplication(majid.id), isFalse);
+  });
+
+  testWidgets('CardApplicationScreen shows existing tracker with Delete KYC button, and deleting resets to upload form',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1200, 1200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    final provider = ClaimDeskProvider();
+    final majid = UserProfile.demoUsers.firstWhere((u) => u.name == 'Majid Al-Dossary');
+    provider.switchUser(majid);
+
+    // Seed an existing submitted application
+    final app = CardApplication(
+      id: 'APP-2026-100',
+      fullNameEnglish: 'Majid Al-Dossary',
+      fullNameArabic: 'ماجد الدوسري',
+      nationality: 'Saudi Arabia',
+      dateOfBirth: DateTime(1992, 5, 14),
+      iqamaNumber: '2501928374',
+      iqamaExpiryDateGregorian: DateTime(2028, 8, 20),
+      iqamaExpiryDateHijri: '1450/02/29',
+      passportNumber: 'N8492014',
+      passportIssueDate: DateTime(2022, 1, 10),
+      passportExpiryDate: DateTime(2032, 1, 9),
+      mobileNumberPersonal: '+966 56 332 1144',
+      mobileNumberOfficial: '+966 56 000 0000',
+      emailOfficial: 'm.dossary@expertise.sa',
+      shortAddressCode: 'JAZ4109',
+      buildingNumber: '4012',
+      streetName: 'Corniche Rd',
+      district: 'Al-Shati',
+      city: 'Jazan',
+      postalCode: '45142',
+      employeeId: majid.employeeId,
+      designation: majid.designation,
+      employeeGrade: 'Band-B',
+      company: majid.company,
+      division: majid.division,
+      department: majid.department,
+      costCenter: majid.costCenter,
+      reportingManagerName: 'Rajesh M. Shetty',
+      reportingManagerId: 'EMP-1002',
+      projectWbsCode: 'PRJ-2026-JAZAN',
+      operatingSiteLocation: majid.division,
+      cardFormat: CardFormat.physicalPlastic,
+      embossedName: 'MAJID AL-DOSSARY',
+      monthlyLimit: 5000.0,
+      singleTransactionCap: 2000.0,
+      dailySpendingCap: 3000.0,
+      authorizedCategories: const ['Fuel & Fleet'],
+      deliveryPreference: 'Site Courier',
+      personalIban: 'SA0380000000608010167519',
+      bankName: 'Al Rajhi Bank',
+      emergencyContactName: '',
+      emergencyContactMobile: '',
+      emergencyRelation: '',
+      termsAccepted: true,
+      submissionTimestamp: DateTime.now(),
+      status: ApplicationStatus.submitted,
+    );
+    provider.submitCardApplication(app);
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: provider),
+        ],
+        child: const MaterialApp(
+          home: CardApplicationScreen(),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Confirm Tracker screen elements are displayed
+    expect(find.text('APPLICATION TRACKER'), findsOneWidget);
+    expect(find.text('APP-2026-100'), findsOneWidget);
+    expect(find.text('Submitted & SAMA KYC Pending'), findsOneWidget);
+    expect(find.text('Delete KYC Details & Apply Again'), findsOneWidget);
+
+    // Tap Delete KYC button
+    await tester.tap(find.text('Delete KYC Details & Apply Again'));
+    await tester.pumpAndSettle();
+
+    // Confirm Confirmation Dialog appears
+    expect(find.text('Delete KYC Details?'), findsOneWidget);
+    expect(find.text('Delete & Re-apply'), findsOneWidget);
+
+    // Confirm deletion
+    await tester.tap(find.text('Delete & Re-apply'));
+    await tester.pumpAndSettle();
+
+    // Provider state is cleared
+    expect(provider.activeCardApplication, isNull);
+
+    // Screen transitions back to 1-Step KYC upload wizard
+    expect(find.text('1. UPLOAD KYC DOCUMENTS'), findsOneWidget);
+    expect(find.text('Saudi Iqama'), findsOneWidget);
+    expect(find.text('Passport Copy'), findsOneWidget);
+    expect(find.text('Applicant Picture'), findsOneWidget);
   });
 }

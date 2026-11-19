@@ -7,6 +7,7 @@ import '../models/approval_stage.dart';
 import '../models/verified_attachment.dart';
 import '../providers/claim_desk_provider.dart';
 import '../widgets/kinetic_background.dart';
+import '../widgets/modern_horizontal_tracker_card.dart';
 import 'new_claim_screen.dart';
 
 /// Full Corporate Claim Audit Ledger View
@@ -817,51 +818,105 @@ class _ClaimDetailsScreenState extends State<ClaimDetailsScreen> {
             ),
           ];
 
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    final trackerStages = [
+      for (final s in stages)
+        TrackerStageItem(
+          label: s.roleTitle
+              .replaceAll('Manager', 'Mgr')
+              .replaceAll('Procurement Lead', 'Procure')
+              .replaceAll('Finance Manager', 'Finance'),
+          isCompleted: s.isApproved,
+          isActive: s.isPending,
+          isPending: s.isWaiting,
+          isRejected: s.isRejected,
+        ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Modern Horizontal Progress Tracker Card (Reference Design)
+        ModernHorizontalTrackerCard(
+          id: claim.id,
+          statusLabel: claim.status == ClaimStatus.approved
+              ? 'Approved & Disbursed'
+              : 'Under AP Review',
+          statusColor: claim.status == ClaimStatus.approved
+              ? AppTheme.royalBlue
+              : AppTheme.primaryOrange,
+          startDate: DateFormat('dd MMM, yyyy').format(claim.claimDate),
+          startLocation: 'Claim Initiated • Dammam',
+          endDate: DateFormat('dd MMM, yyyy').format(claim.claimDate.add(const Duration(days: 2))),
+          endLocation: 'Treasury Disbursed • Riyadh',
+          stages: trackerStages,
+          itemThumbnail: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppTheme.navyDark,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.goldMetallic.withValues(alpha: 0.6)),
+            ),
+            child: const Center(
+              child: Icon(Icons.verified_user_rounded, color: AppTheme.goldPrimary, size: 22),
+            ),
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: const [
-                  Icon(Icons.linear_scale, size: 20, color: AppTheme.navyDark),
-                  SizedBox(width: 8),
-                  Text(
-                    '4-Level Approval Audit Trail',
-                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.navyDark),
-                  ),
-                ],
-              ),
-              const Text(
-                'Stage 3 / 4 Active',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryOrange),
+          itemTitle: 'Corporate Spend Audit Ledger',
+          itemSubtitle: '4-Level SAMA & ZATCA Approved Audit Trail',
+          itemPriceOrValue: 'SAR ${claim.grandTotal.toStringAsFixed(2)}',
+          itemBadgeColor: const Color(0xFFEFF6FF),
+          itemBadgeTextColor: AppTheme.royalBlue,
+        ),
+        const SizedBox(height: 16),
+
+        // 4-Level Approval Audit Trail Detailed Stage Log
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Section Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: const [
+                      Icon(Icons.linear_scale, size: 20, color: AppTheme.navyDark),
+                      SizedBox(width: 8),
+                      Text(
+                        '4-Level Approval Audit Trail',
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.navyDark),
+                      ),
+                    ],
+                  ),
+                  const Text(
+                    'Stage 3 / 4 Active',
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.primaryOrange),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
 
-          // Stepper Items
-          for (int i = 0; i < stages.length; i++) ...[
-            _buildStageItem(context, stages[i], isLast: i == stages.length - 1),
-          ],
-        ],
-      ),
+              // Stepper Items
+              for (int i = 0; i < stages.length; i++) ...[
+                _buildStageItem(context, stages[i], isLast: i == stages.length - 1),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 
