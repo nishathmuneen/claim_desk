@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../providers/claim_desk_provider.dart';
 import '../widgets/active_card_card.dart';
-import '../widgets/approval_stage_pills.dart';
 import '../widgets/modern_horizontal_tracker_card.dart';
+import '../widgets/unified_claim_card.dart';
 import '../models/expense_claim.dart';
 import '../models/card_refill_request.dart';
 import '../models/card_application.dart';
@@ -506,7 +506,7 @@ class DashboardScreen extends StatelessWidget {
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 13),
-                      side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+                      side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
                     ),
                     icon: const Icon(Icons.badge_outlined, size: 17),
                     label: const Text('Apply for Card', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
@@ -525,7 +525,7 @@ class DashboardScreen extends StatelessWidget {
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 13),
-                      side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+                      side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
                     ),
                     icon: const Icon(Icons.bolt, size: 17, color: AppTheme.primaryOrange),
                     label: const Text('Request Refill', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
@@ -622,21 +622,40 @@ class DashboardScreen extends StatelessWidget {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
-          color: highlight ? const Color(0xFFFEF2F2) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: highlight ? const Color(0xFFFEF2F2) : null,
+          gradient: highlight
+              ? null
+              : const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFFFFFFFD),
+                    Color(0xFFFEF8EC),
+                  ],
+                ),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: highlight ? const Color(0xFFF87171) : const Color(0xFFE2E8F0),
-            width: highlight ? 1.5 : 1.2,
+            color: highlight
+                ? const Color(0xFFF87171)
+                : const Color(0xFFFEF08A).withValues(alpha: 0.45),
+            width: highlight ? 1.2 : 0.8,
           ),
           boxShadow: [
             BoxShadow(
+              color: highlight
+                  ? const Color(0xFFDC2626).withValues(alpha: 0.08)
+                  : const Color(0xFFD97706).withValues(alpha: 0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+            BoxShadow(
               color: const Color(0xFF0F172A).withValues(alpha: 0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              blurRadius: 6,
+              offset: const Offset(0, 1),
             ),
           ],
         ),
@@ -723,199 +742,14 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _recentClaimTile(BuildContext context, ExpenseClaim claim) {
-    Color statusColor;
-    Color statusBg;
-    String statusLabel;
-    IconData statusIcon;
-
-    switch (claim.status) {
-      case ClaimStatus.draft:
-        statusColor = AppTheme.textSecondary;
-        statusBg = const Color(0xFFF1F5F9);
-        statusLabel = 'Draft';
-        statusIcon = Icons.edit_note;
-        break;
-      case ClaimStatus.submitted:
-        statusColor = AppTheme.infoBlue;
-        statusBg = AppTheme.infoLight;
-        statusLabel = 'In Approval';
-        statusIcon = Icons.hourglass_empty;
-        break;
-      case ClaimStatus.partiallyRejected:
-        statusColor = AppTheme.dangerRed;
-        statusBg = AppTheme.dangerLight;
-        statusLabel = 'Action Needed';
-        statusIcon = Icons.warning_amber_rounded;
-        break;
-      case ClaimStatus.approved:
-        statusColor = AppTheme.successGreen;
-        statusBg = AppTheme.successLight;
-        statusLabel = 'Approved';
-        statusIcon = Icons.check_circle_outline;
-        break;
-      case ClaimStatus.fullyClosed:
-        statusColor = AppTheme.closedPurple;
-        statusBg = AppTheme.closedLight;
-        statusLabel = 'Fully Closed';
-        statusIcon = Icons.lock_outline;
-        break;
-    }
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => ClaimDetailsScreen(claim: claim)),
-          );
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(14.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: statusBg,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(statusIcon, color: statusColor, size: 20),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              claim.docRefNumber,
-                              style: const TextStyle(
-                                fontSize: 15.0,
-                                fontWeight: FontWeight.w800,
-                                color: AppTheme.textPrimary,
-                              ),
-                            ),
-                            Text(
-                              'SAR ${claim.grandTotal.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w900,
-                                color: AppTheme.primaryOrange,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          claim.description,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 13.0,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF334155),
-                          ),
-                        ),
-                        if (claim.isZatcaVerified || claim.approvalStages.any((s) => s.remainingSlaHours != null)) ...[
-                          const SizedBox(height: 5),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 4,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              if (claim.isZatcaVerified)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFECFDF5),
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: const Color(0xFFA7F3D0), width: 0.8),
-                                  ),
-                                  child: const Text(
-                                    '✓ ZATCA Valid',
-                                    style: TextStyle(fontSize: 11.0, fontWeight: FontWeight.w800, color: Color(0xFF047857)),
-                                  ),
-                                ),
-                              if (claim.approvalStages.any((s) => s.remainingSlaHours != null)) ...[
-                                Builder(
-                                  builder: (_) {
-                                    final activeStage = claim.approvalStages.firstWhere((s) => s.remainingSlaHours != null);
-                                    return Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFFFF7ED),
-                                        borderRadius: BorderRadius.circular(6),
-                                        border: Border.all(color: const Color(0xFFFED7AA), width: 0.8),
-                                      ),
-                                      child: Text(
-                                        '⏱ ${activeStage.remainingSlaHours}h SLA',
-                                        style: const TextStyle(fontSize: 11.0, fontWeight: FontWeight.w800, color: AppTheme.primaryOrange),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
-                            ],
-                          ),
-                        ],
-                        const SizedBox(height: 6),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '${claim.lines.length} items • ${_formatDate(claim.claimDate)}',
-                              style: const TextStyle(fontSize: 12.0, fontWeight: FontWeight.w600, color: Color(0xFF475569)),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: statusBg,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: statusColor.withValues(alpha: 0.45)),
-                              ),
-                              child: Text(
-                                statusLabel,
-                                style: TextStyle(
-                                  fontSize: 12.0,
-                                  fontWeight: FontWeight.w800,
-                                  color: statusColor,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              if (claim.approvalStages.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.only(top: 8, bottom: 4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: ApprovalStagePills(stages: claim.approvalStages),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.arrow_forward_ios_rounded, size: 11, color: AppTheme.textMuted),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
+    return UnifiedClaimCard(
+      claim: claim,
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => ClaimDetailsScreen(claim: claim)),
+        );
+      },
     );
   }
 
@@ -936,18 +770,33 @@ class DashboardScreen extends StatelessWidget {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFFFFFFD),
+              Color(0xFFFEF8EC),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: const Color(0xFFFEF08A).withValues(alpha: 0.45),
+            width: 0.8,
+          ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF0F172A).withValues(alpha: 0.035),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
+              color: const Color(0xFFD97706).withValues(alpha: 0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+            BoxShadow(
+              color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 1),
             ),
           ],
         ),
@@ -1503,10 +1352,6 @@ class DashboardScreen extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatDate(DateTime dt) {
-    return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
   }
 }
 

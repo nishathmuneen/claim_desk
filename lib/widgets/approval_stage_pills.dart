@@ -15,13 +15,18 @@ class ApprovalStagePills extends StatelessWidget {
   });
 
   String _getStageShortLabel(ApprovalWorkflowStage stage) {
+    if (stage.stageOrder == 1) return 'L1 Mgr';
+    if (stage.stageOrder == 2) return 'L2 Div';
+    if (stage.stageOrder == 3) return 'L3 AP';
+    if (stage.stageOrder == 4) return 'L4 SAP';
+
     final title = stage.roleTitle.toLowerCase();
-    if (title.contains('reporting') || title.contains('line') || title.contains('manager') || title.contains('accountant')) {
-      return 'L1 Mgr';
-    } else if (title.contains('division') || title.contains('head') || title.contains('div')) {
-      return 'L2 Div';
-    } else if (title.contains('section') || title.contains('ap') || title.contains('procure') || title.contains('lead')) {
+    if (title.contains('section') || title.contains('ap') || title.contains('procure') || title.contains('lead')) {
       return 'L3 AP';
+    } else if (title.contains('division') || title.contains('div')) {
+      return 'L2 Div';
+    } else if (title.contains('reporting') || title.contains('line') || title.contains('manager') || title.contains('accountant')) {
+      return 'L1 Mgr';
     } else if (title.contains('sap') || title.contains('posting') || title.contains('payout') || title.contains('treasury') || title.contains('finance')) {
       return 'L4 SAP';
     }
@@ -186,25 +191,25 @@ class ApprovalStagePills extends StatelessWidget {
 
       case ApprovalStatus.pending:
         return Container(
-          width: 22,
-          height: 22,
+          width: 20,
+          height: 20,
           decoration: BoxDecoration(
-            color: AppTheme.orangeMuted,
+            color: Colors.white,
             shape: BoxShape.circle,
-            border: Border.all(color: AppTheme.primaryOrange, width: 2.0),
+            border: Border.all(color: const Color(0xFFD97706), width: 1.8),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.primaryOrange.withValues(alpha: 0.35),
-                blurRadius: 5,
-                spreadRadius: 1,
+                color: const Color(0xFFD97706).withValues(alpha: 0.25),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
               ),
             ],
           ),
           child: const Center(
             child: Icon(
-              Icons.autorenew_rounded,
-              size: 13,
-              color: AppTheme.primaryOrange,
+              Icons.schedule_rounded,
+              size: 12,
+              color: Color(0xFFD97706),
             ),
           ),
         );

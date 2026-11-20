@@ -20,18 +20,32 @@ class NewClaimScreen extends StatefulWidget {
 class _NewClaimScreenState extends State<NewClaimScreen> {
   final _uuid = const Uuid();
   late String _docRefNumber;
-  String _selectedDocType = 'Petty Cash Reimbursement';
+  String _selectedDocType = 'Site Operations & Consumables';
   DateTime _claimDate = DateTime.now();
   final _descController = TextEditingController();
 
   final List<ExpenseLineItem> _lines = [];
 
   final List<String> _docTypes = [
-    'Petty Cash Reimbursement',
-    'Site Operational Expense',
+    'Site Operations & Consumables',
     'Local Travel & Fuel Claim',
-    'Urgent Equipment Maintenance',
+    'Equipment Maintenance & Repairs',
+    'General Office & Administrative',
+    'Client & Site Hospitality',
   ];
+
+  static String _mapLegacyDocType(String legacy) {
+    if (legacy == 'Petty Cash Reimbursement' || legacy == 'Site Operational Expense') {
+      return 'Site Operations & Consumables';
+    }
+    if (legacy == 'Urgent Equipment Maintenance') {
+      return 'Equipment Maintenance & Repairs';
+    }
+    if (legacy == 'Travel & Lodging') {
+      return 'Client & Site Hospitality';
+    }
+    return legacy;
+  }
 
   final List<String> _categories = [
     'Fuel & Fleet',
@@ -55,7 +69,9 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
     if (widget.initialDraft != null) {
       final draft = widget.initialDraft!;
       _docRefNumber = draft.docRefNumber;
-      _selectedDocType = draft.docType;
+      _selectedDocType = _docTypes.contains(draft.docType)
+          ? draft.docType
+          : _mapLegacyDocType(draft.docType);
       _claimDate = draft.claimDate;
       _descController.text = draft.description;
       _lines.addAll(draft.lines);
@@ -446,7 +462,7 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
                     isExpanded: true,
                     dropdownColor: Colors.white,
                     decoration: const InputDecoration(
-                      labelText: 'Document Type (Routes Workflow)',
+                      labelText: 'Claim Purpose / Classification',
                       prefixIcon: Icon(Icons.alt_route, size: 18, color: AppTheme.textSecondary),
                     ),
                     items: {..._docTypes, _selectedDocType}.map((type) {
@@ -524,14 +540,29 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppTheme.border),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFFFFFFD),
+                  Color(0xFFFEF8EC),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFFFEF08A).withValues(alpha: 0.45),
+                width: 0.8,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
+                  color: const Color(0xFFD97706).withValues(alpha: 0.08),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+                BoxShadow(
+                  color: const Color(0xFF0F172A).withValues(alpha: 0.03),
                   blurRadius: 6,
-                  offset: const Offset(0, 2),
+                  offset: const Offset(0, 1),
                 ),
               ],
             ),

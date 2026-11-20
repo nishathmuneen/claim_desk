@@ -56,57 +56,175 @@ class _MainShellState extends State<MainShell> {
           children: screens,
         ),
       ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: AppTheme.border, width: 1.0)),
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x0A000000),
-              blurRadius: 8,
-              offset: Offset(0, -2),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+          child: Container(
+            decoration: BoxDecoration(
+              // Golden peach / warm champagne gradient matching the reference image
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFFDE8C7), // Warm peach-gold top
+                  Color(0xFFF7D59E), // Golden amber bottom
+                ],
+              ),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: const Color(0xFFF6C987),
+                width: 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFB45309).withValues(alpha: 0.18),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          ],
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+            child: Row(
+              children: [
+                _buildNavTab(
+                  index: 0,
+                  label: 'Dashboard',
+                  unselectedIcon: Icons.home_outlined,
+                  selectedIcon: Icons.home_rounded,
+                  isSelected: _currentIndex == 0,
+                ),
+                _buildNavTab(
+                  index: 1,
+                  label: 'New Claim',
+                  unselectedIcon: Icons.add_circle_outline_rounded,
+                  selectedIcon: Icons.add_circle_rounded,
+                  isSelected: _currentIndex == 1,
+                ),
+                _buildNavTab(
+                  index: 2,
+                  label: 'Action Needed',
+                  unselectedIcon: Icons.fact_check_outlined,
+                  selectedIcon: Icons.fact_check_rounded,
+                  isSelected: _currentIndex == 2,
+                  badgeCount: actionNeededCount,
+                ),
+                _buildNavTab(
+                  index: 3,
+                  label: 'My Claims',
+                  unselectedIcon: Icons.layers_outlined,
+                  selectedIcon: Icons.layers_rounded,
+                  isSelected: _currentIndex == 3,
+                ),
+              ],
+            ),
+          ),
         ),
-        child: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: _onTabSelected,
-          backgroundColor: Colors.white,
-          indicatorColor: AppTheme.primaryOrange.withValues(alpha: 0.18),
-          elevation: 0,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          destinations: [
-            const NavigationDestination(
-              icon: Icon(Icons.dashboard_outlined, color: AppTheme.textSecondary),
-              selectedIcon: Icon(Icons.dashboard, color: AppTheme.primaryOrange),
-              label: 'Dashboard',
-            ),
-            const NavigationDestination(
-              icon: Icon(Icons.add_circle_outline, color: AppTheme.textSecondary),
-              selectedIcon: Icon(Icons.add_circle, color: AppTheme.primaryOrange),
-              label: 'New Claim',
-            ),
-            NavigationDestination(
-              icon: Badge(
-                isLabelVisible: actionNeededCount > 0,
-                label: Text('$actionNeededCount'),
-                backgroundColor: AppTheme.dangerRed,
-                child: const Icon(Icons.assignment_late_outlined, color: AppTheme.textSecondary),
+      ),
+    );
+  }
+
+  Widget _buildNavTab({
+    required int index,
+    required String label,
+    required IconData unselectedIcon,
+    required IconData selectedIcon,
+    required bool isSelected,
+    int badgeCount = 0,
+  }) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 3),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _onTabSelected(index),
+            borderRadius: BorderRadius.circular(16),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color(0xFF16233B) // Dark Midnight Navy when selected
+                    : const Color(0xFFFFFDF8), // Ivory cream white when unselected
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFF16233B)
+                      : const Color(0xFFF3E4CF),
+                  width: 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isSelected ? 0.25 : 0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              selectedIcon: Badge(
-                isLabelVisible: actionNeededCount > 0,
-                label: Text('$actionNeededCount'),
-                backgroundColor: AppTheme.dangerRed,
-                child: const Icon(Icons.assignment_late, color: AppTheme.dangerRed),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.center,
+                    children: [
+                      Icon(
+                        isSelected ? selectedIcon : unselectedIcon,
+                        size: 21,
+                        color: isSelected
+                            ? const Color(0xFFFBBF24) // Warm gold icon when navy selected
+                            : const Color(0xFF5A3110), // Deep bronze/brown icon when unselected
+                      ),
+                      if (badgeCount > 0)
+                        Positioned(
+                          top: -4,
+                          right: -8,
+                          child: Container(
+                            padding: const EdgeInsets.all(3.5),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFDC2626), // Red circular badge
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            child: Center(
+                              child: Text(
+                                '$badgeCount',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w900,
+                                  height: 1.0,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 3.5),
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      color: isSelected
+                          ? Colors.white // White text when navy selected
+                          : const Color(0xFF451A03), // Deep bronze/brown text when unselected
+                      letterSpacing: -0.1,
+                    ),
+                  ),
+                ],
               ),
-              label: 'Action Needed',
             ),
-            const NavigationDestination(
-              icon: Icon(Icons.receipt_long_outlined, color: AppTheme.textSecondary),
-              selectedIcon: Icon(Icons.receipt_long, color: AppTheme.primaryOrange),
-              label: 'My Claims',
-            ),
-          ],
+          ),
         ),
       ),
     );

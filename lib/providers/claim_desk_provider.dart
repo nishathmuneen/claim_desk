@@ -470,7 +470,7 @@ class ClaimDeskProvider extends ChangeNotifier {
       ExpenseClaim(
         id: 'CLM-1021',
         docRefNumber: '#CLM-1021',
-        docType: 'Travel & Lodging',
+        docType: 'Client & Site Hospitality',
         claimDate: DateTime(2026, 10, 28, 20, 45),
         description: 'Riyadh Marriott Hotel - Client Workshop',
         employeeId: _activeUser.employeeId,
@@ -589,7 +589,7 @@ class ClaimDeskProvider extends ChangeNotifier {
       ExpenseClaim(
         id: 'CLM-001',
         docRefNumber: 'EXP-2026-0044',
-        docType: 'Petty Cash Reimbursement',
+        docType: 'Site Operations & Consumables',
         claimDate: now.subtract(const Duration(days: 1)),
         description: 'Dammam Workshop Urgent Consumables & Fasteners',
         employeeId: _activeUser.employeeId,
@@ -708,7 +708,7 @@ class ClaimDeskProvider extends ChangeNotifier {
       ExpenseClaim(
         id: 'CLM-003',
         docRefNumber: 'EXP-2026-0040',
-        docType: 'Urgent Equipment Maintenance',
+        docType: 'Equipment Maintenance & Repairs',
         claimDate: now.subtract(const Duration(days: 6)),
         description: 'Jubail Heavy Generator Emergency Spare Parts',
         employeeId: _activeUser.employeeId,
@@ -793,7 +793,7 @@ class ClaimDeskProvider extends ChangeNotifier {
       ExpenseClaim(
         id: 'CLM-004',
         docRefNumber: 'EXP-2026-0012',
-        docType: 'Petty Cash Reimbursement',
+        docType: 'Site Operations & Consumables',
         claimDate: DateTime(2026, 2, 10),
         description: 'First Aid Restock & Site Safety Boots',
         employeeId: _activeUser.employeeId,

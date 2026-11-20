@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../providers/claim_desk_provider.dart';
 import '../models/expense_claim.dart';
 import '../widgets/document_picker_sheet.dart';
+import '../widgets/unified_claim_card.dart';
 
 class ResubmissionScreen extends StatefulWidget {
   const ResubmissionScreen({super.key});
@@ -268,106 +269,86 @@ class _ResubmissionScreenState extends State<ResubmissionScreen> {
           else
             ...rejectedClaims.map((claim) {
               final rejectedLines = claim.rejectedLines;
-              return Card(
-                margin: const EdgeInsets.only(bottom: 16),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            claim.docRefNumber,
-                            style: const TextStyle(
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'monospace',
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: AppTheme.dangerLight,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppTheme.dangerRed.withValues(alpha: 0.35)),
-                            ),
-                            child: const Text(
-                              'Returned to Initiator',
-                              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.dangerRed),
-                            ),
-                          ),
-                        ],
+              return UnifiedClaimCard(
+                claim: claim,
+                bottomContent: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 4),
+                    const Divider(height: 20),
+                    const Text(
+                      'REJECTED EXPENSE ITEMS',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textMuted,
+                        letterSpacing: 0.8,
                       ),
-                      const SizedBox(height: 5),
-                      Text(claim.description, style: const TextStyle(fontSize: 12.5, color: AppTheme.textSecondary)),
-                      const Divider(height: 20),
+                    ),
+                    const SizedBox(height: 8),
 
-                      // List of Rejected Lines in this claim
-                      ...rejectedLines.map((line) {
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppTheme.surfaceElevated,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppTheme.dangerRed.withValues(alpha: 0.3)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    line.category,
-                                    style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
-                                  ),
-                                  Text(
-                                    'SAR ${line.totalAmount.toStringAsFixed(2)}',
-                                    style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppTheme.primaryOrange),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text('Invoice #: ${line.invoiceNumber}', style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary)),
-                              const SizedBox(height: 8),
+                    // List of Rejected Lines in this claim
+                    ...rejectedLines.map((line) {
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceElevated,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppTheme.dangerRed.withValues(alpha: 0.3)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  line.category,
+                                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppTheme.textPrimary),
+                                ),
+                                Text(
+                                  'SAR ${line.totalAmount.toStringAsFixed(2)}',
+                                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: AppTheme.primaryOrange),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text('Invoice #: ${line.invoiceNumber}', style: const TextStyle(fontSize: 11.5, color: AppTheme.textSecondary)),
+                            const SizedBox(height: 8),
 
-                              // Rejection Comment Box
-                              Container(
-                                width: double.infinity,
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.dangerLight,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  'Approver Comment: ${line.rejectionComment}',
-                                  style: const TextStyle(fontSize: 12, color: AppTheme.dangerRed, height: 1.3),
-                                ),
+                            // Rejection Comment Box
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: AppTheme.dangerLight,
+                                borderRadius: BorderRadius.circular(6),
                               ),
-                              const SizedBox(height: 10),
+                              child: Text(
+                                'Approver Comment: ${line.rejectionComment}',
+                                style: const TextStyle(fontSize: 12, color: AppTheme.dangerRed, height: 1.3),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
 
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: ElevatedButton.icon(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.primaryOrange,
-                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                  ),
-                                  icon: const Icon(Icons.edit, size: 15),
-                                  label: const Text('Edit & Resubmit', style: TextStyle(fontSize: 12.5)),
-                                  onPressed: () => _openEditDialog(context, claim.id, line),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppTheme.primaryOrange,
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                 ),
+                                icon: const Icon(Icons.edit, size: 15),
+                                label: const Text('Edit & Resubmit', style: TextStyle(fontSize: 12.5)),
+                                onPressed: () => _openEditDialog(context, claim.id, line),
                               ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
                 ),
               );
             }),

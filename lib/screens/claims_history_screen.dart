@@ -5,8 +5,8 @@ import '../providers/claim_desk_provider.dart';
 import '../models/expense_claim.dart';
 import '../models/approval_stage.dart';
 import '../widgets/approval_pipeline_stepper.dart';
-import '../widgets/approval_stage_pills.dart';
 import '../widgets/period_filter_bar.dart';
+import '../widgets/unified_claim_card.dart';
 import 'new_claim_screen.dart';
 import 'resubmission_screen.dart';
 import 'claim_details_screen.dart';
@@ -597,15 +597,6 @@ class _ClaimsHistoryScreenState extends State<ClaimsHistoryScreen> {
 
     // Summary calculations for the chosen period
     final totalPeriodAmount = periodClaims.fold(0.0, (s, c) => s + c.grandTotal);
-    final approvedPeriodAmount = periodClaims
-        .where((c) => c.status == ClaimStatus.approved || c.status == ClaimStatus.fullyClosed)
-        .fold(0.0, (s, c) => s + c.grandTotal);
-    final inReviewPeriodAmount = periodClaims
-        .where((c) => c.status == ClaimStatus.submitted)
-        .fold(0.0, (s, c) => s + c.grandTotal);
-    final rejectedPeriodAmount = periodClaims
-        .where((c) => c.hasRejectedLines)
-        .fold(0.0, (s, c) => s + c.grandTotal);
 
     // Filter by status tab & search query
     final filtered = periodClaims.where((c) {
@@ -628,19 +619,39 @@ class _ClaimsHistoryScreenState extends State<ClaimsHistoryScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
-          const Text(
-            'MY CLAIMS & HISTORY',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
-              letterSpacing: 0.5,
-            ),
+          // Header Row with Gold Squircle Bar Chart Icon (matching reference picture)
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.bar_chart_rounded,
+                    color: Color(0xFFD97706),
+                    size: 21,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'My Claims & History',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF0F172A),
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
-          // Period Filter Bar (WTD, MTD, YTD, Custom)
+          // Period Filter Bar (Freestanding Stadium Pills: WTD, MTD, YTD, Custom)
           PeriodFilterBar(
             selectedPeriod: _selectedPeriod,
             customDateRange: _customDateRange,
@@ -653,62 +664,134 @@ class _ClaimsHistoryScreenState extends State<ClaimsHistoryScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Period Totals Summary Card
+          // Sleek Total Claimed Pill Bar (matching reference picture)
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.border),
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFFFFFFD),
+                  Color(0xFFFEF8EC),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: const Color(0xFFFEF08A).withValues(alpha: 0.45),
+                width: 0.8,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+                  color: const Color(0xFFD97706).withValues(alpha: 0.08),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+                BoxShadow(
+                  color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+                  blurRadius: 6,
+                  offset: const Offset(0, 1),
                 ),
               ],
             ),
-            child: Column(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'TOTAL CLAIMED (${periodClaims.length} CLAIMS)',
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textMuted),
-                    ),
-                    Text(
-                      'SAR ${totalPeriodAmount.toStringAsFixed(2)}',
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: AppTheme.primaryOrange),
-                    ),
-                  ],
+                Text(
+                  'TOTAL CLAIMED (${periodClaims.length} CLAIMS)',
+                  style: const TextStyle(
+                    fontSize: 13.0,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF64748B),
+                    letterSpacing: 0.3,
+                  ),
                 ),
-                const Divider(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _miniSummaryPill('Approved', 'SAR ${approvedPeriodAmount.toStringAsFixed(0)}', AppTheme.successGreen),
-                    _miniSummaryPill('In Review', 'SAR ${inReviewPeriodAmount.toStringAsFixed(0)}', AppTheme.infoBlue),
-                    _miniSummaryPill('Action Needed', 'SAR ${rejectedPeriodAmount.toStringAsFixed(0)}', AppTheme.dangerRed),
-                  ],
+                Container(
+                  height: 20,
+                  width: 1.0,
+                  color: const Color(0xFFCBD5E1),
+                ),
+                Text(
+                  _formatCurrency(totalPeriodAmount),
+                  style: const TextStyle(
+                    fontSize: 19.0,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF854D0E),
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 14),
 
-          // Search Field
-          TextField(
-            controller: _searchController,
-            onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(
-              hintText: 'Search by Ref # or description...',
-              prefixIcon: Icon(Icons.search, size: 20),
+          // Search Field with Curvier Corners, Light Gold Gradient & Warm Gold Shadow
+          Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFFFFFFD),
+                  Color(0xFFFEF8EC),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFFFEF08A).withValues(alpha: 0.45),
+                width: 0.8,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFD97706).withValues(alpha: 0.08),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+                BoxShadow(
+                  color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+                  blurRadius: 6,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (_) => setState(() {}),
+              style: const TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF0F172A),
+              ),
+              decoration: InputDecoration(
+                hintText: 'Search by Ref # or description...',
+                hintStyle: const TextStyle(
+                  fontSize: 13.0,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF64748B),
+                ),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  size: 20,
+                  color: Color(0xFF0F172A),
+                ),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 18, color: Color(0xFF64748B)),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {});
+                        },
+                      )
+                    : null,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+              ),
             ),
           ),
           const SizedBox(height: 12),
 
-          // Filter Chips
+          // Status Filter Pills (Matching KPI Shape, Color & Border)
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -716,22 +799,80 @@ class _ClaimsHistoryScreenState extends State<ClaimsHistoryScreen> {
                 final isSelected = filter == _selectedFilter;
                 return Padding(
                   padding: const EdgeInsets.only(right: 8.0),
-                  child: FilterChip(
-                    label: Text(filter),
-                    selected: isSelected,
-                    onSelected: (val) {
+                  child: InkWell(
+                    onTap: () {
                       setState(() => _selectedFilter = filter);
                     },
-                    selectedColor: AppTheme.primaryOrange.withValues(alpha: 0.16),
-                    checkmarkColor: AppTheme.primaryOrange,
-                    labelStyle: TextStyle(
-                      fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      color: isSelected ? AppTheme.primaryOrange : AppTheme.textSecondary,
-                    ),
-                    backgroundColor: AppTheme.surface,
-                    side: BorderSide(
-                      color: isSelected ? AppTheme.primaryOrange : AppTheme.border,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      decoration: BoxDecoration(
+                        gradient: isSelected
+                            ? const LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Color(0xFFD97706), // Rich amber gold
+                                  Color(0xFFB45309), // Deep amber gold
+                                ],
+                              )
+                            : const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Color(0xFFFFFFFD),
+                                  Color(0xFFFEF8EC),
+                                ],
+                              ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isSelected
+                              ? const Color(0xFFB45309)
+                              : const Color(0xFFFEF08A).withValues(alpha: 0.45),
+                          width: isSelected ? 1.0 : 0.8,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFFB45309).withValues(alpha: 0.35),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ]
+                            : [
+                                BoxShadow(
+                                  color: const Color(0xFFD97706).withValues(alpha: 0.08),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
+                                ),
+                                BoxShadow(
+                                  color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (isSelected) ...[
+                            const Icon(
+                              Icons.check,
+                              size: 14,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 4),
+                          ],
+                          Text(
+                            filter,
+                            style: TextStyle(
+                              fontSize: 12.0,
+                              fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
+                              color: isSelected ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -749,176 +890,24 @@ class _ClaimsHistoryScreenState extends State<ClaimsHistoryScreen> {
             )
           else
             ...filtered.map((claim) {
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: InkWell(
-                  onLongPress: () => _showLegacyClaimBottomSheet(context, claim),
-                  onTap: () {
-                    if (claim.status == ClaimStatus.draft) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => Scaffold(
-                            appBar: AppBar(title: const Text('Edit Draft Claim')),
-                            body: NewClaimScreen(initialDraft: claim),
-                          ),
+              return UnifiedClaimCard(
+                claim: claim,
+                onLongPress: () => _showLegacyClaimBottomSheet(context, claim),
+                onTap: () {
+                  if (claim.status == ClaimStatus.draft) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => Scaffold(
+                          appBar: AppBar(title: const Text('Edit Draft Claim')),
+                          body: NewClaimScreen(initialDraft: claim),
                         ),
-                      );
-                    } else {
-                      _showClaimDetails(context, claim);
-                    }
-                  },
-                  borderRadius: BorderRadius.circular(14),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              claim.docRefNumber,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'monospace',
-                                color: AppTheme.textPrimary,
-                              ),
-                            ),
-                            Text(
-                              'SAR ${claim.grandTotal.toStringAsFixed(2)}',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.primaryOrange,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          claim.description,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 12.5, color: AppTheme.textSecondary),
-                        ),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            Text(
-                              '${claim.lines.length} items • ${_formatDate(claim.claimDate)}',
-                              style: const TextStyle(fontSize: 11, color: AppTheme.textMuted),
-                            ),
-                            if (claim.projectCode != null)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF1F5F9),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  claim.projectCode!,
-                                  style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                            if (claim.isZatcaVerified)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFECFDF5),
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: const Color(0xFFA7F3D0)),
-                                ),
-                                child: const Text(
-                                  '✓ Cryptographic QR Valid',
-                                  style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.bold, color: Color(0xFF047857)),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            if (claim.approvalStages.any((s) => s.remainingSlaHours != null)) ...[
-                              Builder(
-                                builder: (_) {
-                                  final activeStage = claim.approvalStages.firstWhere((s) => s.remainingSlaHours != null);
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFFFF7ED),
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(color: const Color(0xFFFDBA74)),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(Icons.timer_outlined, size: 11, color: AppTheme.primaryOrange),
-                                        const SizedBox(width: 3),
-                                        Text(
-                                          'Stage ${activeStage.stageOrder} of ${claim.approvalStages.length} • ${activeStage.remainingSlaHours}h SLA left',
-                                          style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppTheme.primaryOrange),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                            ] else ...[
-                              const SizedBox.shrink(),
-                            ],
-                            _statusChip(claim),
-                          ],
-                        ),
-                        if (claim.approvalStages.isNotEmpty) ...[
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.only(top: 10, bottom: 4),
-                            decoration: BoxDecoration(
-                              border: Border(top: BorderSide(color: AppTheme.border.withValues(alpha: 0.6))),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: ApprovalStagePills(stages: claim.approvalStages),
-                                ),
-                                const SizedBox(width: 8),
-                                const Icon(Icons.chevron_right, size: 16, color: AppTheme.textMuted),
-                              ],
-                            ),
-                          ),
-                        ],
-                        if (claim.hasRejectedLines) ...[
-                          const SizedBox(height: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppTheme.dangerLight,
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: AppTheme.dangerRed.withValues(alpha: 0.3)),
-                            ),
-                            child: const Row(
-                              children: [
-                                Icon(Icons.assignment_late, size: 12, color: AppTheme.dangerRed),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Action Needed: 1 item requires resubmission',
-                                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: AppTheme.dangerRed),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
+                      ),
+                    );
+                  } else {
+                    _showClaimDetails(context, claim);
+                  }
+                },
               );
             }),
         ],
@@ -926,65 +915,16 @@ class _ClaimsHistoryScreenState extends State<ClaimsHistoryScreen> {
     );
   }
 
-  Widget _miniSummaryPill(String label, String value, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 10.5, color: AppTheme.textMuted)),
-        const SizedBox(height: 1),
-        Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color)),
-      ],
-    );
-  }
-
-  Widget _statusChip(ExpenseClaim claim) {
-    Color col;
-    Color bg;
-    String label;
-
-    switch (claim.status) {
-      case ClaimStatus.draft:
-        col = AppTheme.textSecondary;
-        bg = const Color(0xFFF1F5F9);
-        label = 'Draft';
-        break;
-      case ClaimStatus.submitted:
-        col = AppTheme.infoBlue;
-        bg = AppTheme.infoLight;
-        label = 'In Approval';
-        break;
-      case ClaimStatus.partiallyRejected:
-        col = AppTheme.dangerRed;
-        bg = AppTheme.dangerLight;
-        label = 'Action Needed';
-        break;
-      case ClaimStatus.approved:
-        col = AppTheme.successGreen;
-        bg = AppTheme.successLight;
-        label = 'Approved';
-        break;
-      case ClaimStatus.fullyClosed:
-        col = AppTheme.closedPurple;
-        bg = AppTheme.closedLight;
-        label = 'Fully Closed';
-        break;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: col.withValues(alpha: 0.35)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: col),
-      ),
-    );
-  }
-
   String _formatDate(DateTime dt) {
     return '${dt.day.toString().padLeft(2, '0')}/${dt.month.toString().padLeft(2, '0')}/${dt.year}';
+  }
+
+  String _formatCurrency(double amount) {
+    final parts = amount.toStringAsFixed(2).split('.');
+    final wholePart = parts[0];
+    final decPart = parts[1];
+    final reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    final formatted = wholePart.replaceAllMapped(reg, (Match m) => '${m[1]},');
+    return 'SAR $formatted.$decPart';
   }
 }

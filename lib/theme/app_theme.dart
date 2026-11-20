@@ -73,11 +73,14 @@ class AppTheme {
         labelLarge: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: textPrimary),
       ),
       cardTheme: CardThemeData(
-        color: surface,
+        color: const Color(0xFFFEF8EC),
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: border, width: 1.2),
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: const Color(0xFFFEF08A).withValues(alpha: 0.45),
+            width: 0.8,
+          ),
         ),
       ),
       appBarTheme: const AppBarTheme(

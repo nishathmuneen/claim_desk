@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
+import 'custom_date_range_sheet.dart';
 
 enum DateFilterPeriod {
   wtd,
@@ -8,6 +8,7 @@ enum DateFilterPeriod {
   customRange,
 }
 
+/// Freestanding Date Period Selector Pills matching Image 2 reference.
 class PeriodFilterBar extends StatelessWidget {
   final DateFilterPeriod selectedPeriod;
   final DateTimeRange? customDateRange;
@@ -22,28 +23,15 @@ class PeriodFilterBar extends StatelessWidget {
 
   Future<void> _pickCustomRange(BuildContext context) async {
     final now = DateTime.now();
-    final picked = await showDateRangePicker(
-      context: context,
+    final picked = await CustomDateRangeSheet.show(
+      context,
       firstDate: DateTime(2025, 1, 1),
       lastDate: DateTime(now.year + 1, 12, 31),
-      initialDateRange: customDateRange ??
+      initialRange: customDateRange ??
           DateTimeRange(
-            start: now.subtract(const Duration(days: 30)),
+            start: DateTime(now.year, now.month, 1),
             end: now,
           ),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppTheme.primaryOrange,
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: AppTheme.textPrimary,
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
 
     if (picked != null) {
@@ -53,44 +41,42 @@ class PeriodFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceElevated,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.border),
-      ),
-      child: Row(
-        children: [
-          _buildPill(
-            label: 'WTD',
-            tooltip: 'Week to Date (Sun - Today)',
-            period: DateFilterPeriod.wtd,
-            onTap: () => onPeriodChanged(DateFilterPeriod.wtd, null),
-          ),
-          _buildPill(
-            label: 'MTD',
-            tooltip: 'Month to Date (1st - Today)',
-            period: DateFilterPeriod.mtd,
-            onTap: () => onPeriodChanged(DateFilterPeriod.mtd, null),
-          ),
-          _buildPill(
-            label: 'YTD',
-            tooltip: 'Year to Date (Jan 1 - Today)',
-            period: DateFilterPeriod.ytd,
-            onTap: () => onPeriodChanged(DateFilterPeriod.ytd, null),
-          ),
-          _buildPill(
-            label: selectedPeriod == DateFilterPeriod.customRange && customDateRange != null
-                ? '${_formatShort(customDateRange!.start)} - ${_formatShort(customDateRange!.end)}'
-                : 'Custom',
-            tooltip: 'Select Custom Date Range',
-            period: DateFilterPeriod.customRange,
-            icon: Icons.date_range,
-            onTap: () => _pickCustomRange(context),
-          ),
-        ],
-      ),
+    return Row(
+      children: [
+        _buildPill(
+          label: 'WTD',
+          tooltip: 'Week to Date (Sun - Today)',
+          period: DateFilterPeriod.wtd,
+          icon: Icons.calendar_today_outlined,
+          onTap: () => onPeriodChanged(DateFilterPeriod.wtd, null),
+        ),
+        const SizedBox(width: 8),
+        _buildPill(
+          label: 'MTD',
+          tooltip: 'Month to Date (1st - Today)',
+          period: DateFilterPeriod.mtd,
+          icon: Icons.calendar_today_outlined,
+          onTap: () => onPeriodChanged(DateFilterPeriod.mtd, null),
+        ),
+        const SizedBox(width: 8),
+        _buildPill(
+          label: 'YTD',
+          tooltip: 'Year to Date (Jan 1 - Today)',
+          period: DateFilterPeriod.ytd,
+          icon: Icons.calendar_month_outlined,
+          onTap: () => onPeriodChanged(DateFilterPeriod.ytd, null),
+        ),
+        const SizedBox(width: 8),
+        _buildPill(
+          label: selectedPeriod == DateFilterPeriod.customRange && customDateRange != null
+              ? '${_formatShort(customDateRange!.start)}-${_formatShort(customDateRange!.end)}'
+              : 'Custom',
+          tooltip: 'Select Custom Date Range',
+          period: DateFilterPeriod.customRange,
+          icon: Icons.edit_calendar_outlined,
+          onTap: () => _pickCustomRange(context),
+        ),
+      ],
     );
   }
 
@@ -98,7 +84,7 @@ class PeriodFilterBar extends StatelessWidget {
     required String label,
     required String tooltip,
     required DateFilterPeriod period,
-    IconData? icon,
+    required IconData icon,
     required VoidCallback onTap,
   }) {
     final isSelected = selectedPeriod == period;
@@ -107,45 +93,72 @@ class PeriodFilterBar extends StatelessWidget {
         message: tooltip,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(24),
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 9, horizontal: 4),
             decoration: BoxDecoration(
-              color: isSelected ? Colors.white : Colors.transparent,
-              borderRadius: BorderRadius.circular(8),
+              gradient: isSelected
+                  ? const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0xFFD97706), // Rich amber gold top
+                        Color(0xFFB45309), // Deep amber gold bottom
+                      ],
+                    )
+                  : const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFFFFFFFD),
+                        Color(0xFFFEF8EC),
+                      ],
+                    ),
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: isSelected ? AppTheme.primaryOrange : Colors.transparent,
-                width: 1.2,
+                color: isSelected
+                    ? const Color(0xFFB45309)
+                    : const Color(0xFFFEF08A).withValues(alpha: 0.45),
+                width: isSelected ? 1.0 : 0.8,
               ),
               boxShadow: isSelected
                   ? [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                        color: const Color(0xFFB45309).withValues(alpha: 0.35),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
                       ),
                     ]
-                  : null,
+                  : [
+                      BoxShadow(
+                        color: const Color(0xFFD97706).withValues(alpha: 0.08),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                      BoxShadow(
+                        color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (icon != null) ...[
-                  Icon(
-                    icon,
-                    size: 13,
-                    color: isSelected ? AppTheme.primaryOrange : AppTheme.textSecondary,
-                  ),
-                  const SizedBox(width: 4),
-                ],
+                Icon(
+                  icon,
+                  size: 15,
+                  color: isSelected ? Colors.white : const Color(0xFF0F172A),
+                ),
+                const SizedBox(width: 5),
                 Flexible(
                   child: Text(
                     label,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 11.5,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      color: isSelected ? AppTheme.primaryOrange : AppTheme.textSecondary,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w800,
+                      color: isSelected ? Colors.white : const Color(0xFF0F172A),
                     ),
                   ),
                 ),
@@ -161,4 +174,3 @@ class PeriodFilterBar extends StatelessWidget {
     return '${dt.day}/${dt.month}';
   }
 }
-
