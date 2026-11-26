@@ -35,6 +35,7 @@ class ClaimDeskAppHeader extends StatelessWidget implements PreferredSizeWidget 
       titleSpacing: 14.0,
       elevation: 0,
       title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Left: Brand Logo & Product Title
           Row(
@@ -54,12 +55,16 @@ class ClaimDeskAppHeader extends StatelessWidget implements PreferredSizeWidget 
             ],
           ),
 
-          const Spacer(),
+          const SizedBox(width: 8),
 
           // Right Controls: Sleek Role Switcher + Notification Badge + User Avatar
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
               // Compact Role Switcher Pill
               Container(
                 height: 35,
@@ -248,6 +253,8 @@ class ClaimDeskAppHeader extends StatelessWidget implements PreferredSizeWidget 
                 ),
               ),
             ],
+          ),
+            ),
           ),
         ],
       ),

@@ -25,6 +25,43 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
   final _descController = TextEditingController();
 
   final List<ExpenseLineItem> _lines = [];
+  bool? _hasChosenEntryMode;
+  Map<String, TextEditingController>? _invoiceControllers;
+  Map<String, TextEditingController>? _amountControllers;
+
+  TextEditingController _invoiceControllerFor(ExpenseLineItem line) {
+    _invoiceControllers ??= {};
+    return _invoiceControllers!.putIfAbsent(
+      line.id,
+      () => TextEditingController(text: line.invoiceNumber),
+    );
+  }
+
+  TextEditingController _amountControllerFor(ExpenseLineItem line) {
+    _amountControllers ??= {};
+    return _amountControllers!.putIfAbsent(
+      line.id,
+      () => TextEditingController(
+        text: line.baseAmount > 0 ? line.baseAmount.toStringAsFixed(2) : '',
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _descController.dispose();
+    if (_invoiceControllers != null) {
+      for (final c in _invoiceControllers!.values) {
+        c.dispose();
+      }
+    }
+    if (_amountControllers != null) {
+      for (final c in _amountControllers!.values) {
+        c.dispose();
+      }
+    }
+    super.dispose();
+  }
 
   final List<String> _docTypes = [
     'Site Operations & Consumables',
@@ -67,6 +104,7 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
   void initState() {
     super.initState();
     if (widget.initialDraft != null) {
+      _hasChosenEntryMode = true;
       final draft = widget.initialDraft!;
       _docRefNumber = draft.docRefNumber;
       _selectedDocType = _docTypes.contains(draft.docType)
@@ -76,36 +114,58 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
       _descController.text = draft.description;
       _lines.addAll(draft.lines);
     } else if (widget.initialScannedReceipt != null) {
+      _hasChosenEntryMode = true;
       _docRefNumber = 'EXP-2026-${(100 + DateTime.now().microsecond % 900)}';
-      final r = widget.initialScannedReceipt!;
-      if (r['justification'] != null && r['justification'].toString().isNotEmpty) {
-        _descController.text = r['justification'].toString();
-      }
-      final cat = r['category']?.toString() ?? _categories.first;
-      final inv = r['invoiceNumber']?.toString() ?? '';
-      final base = (r['baseAmount'] as num?)?.toDouble() ?? 0.0;
-      final vat = (r['vatAmount'] as num?)?.toDouble() ?? 0.0;
-      final tot = (r['totalAmount'] as num?)?.toDouble() ?? (base + vat);
-      final att = r['attachmentName']?.toString();
-      final dt = (r['invoiceDate'] as DateTime?) ?? DateTime.now();
-
-      _lines.add(
-        ExpenseLineItem(
-          id: _uuid.v4(),
-          date: dt,
-          category: cat,
-          invoiceNumber: inv,
-          baseAmount: base,
-          vatRatePercentage: 15.0,
-          vatAmount: vat,
-          totalAmount: tot,
-          attachmentName: att,
-          status: LineStatus.pending,
-        ),
-      );
+      _applyScannedReceiptToNewClaim(widget.initialScannedReceipt!);
     } else {
+      _hasChosenEntryMode = false;
       _docRefNumber = 'EXP-2026-${(100 + DateTime.now().microsecond % 900)}';
       _addNewBlankLine();
+    }
+  }
+
+  void _applyScannedReceiptToNewClaim(Map<String, dynamic> r) {
+    if (r['justification'] != null && r['justification'].toString().isNotEmpty) {
+      _descController.text = r['justification'].toString();
+    }
+    final cat = r['category']?.toString() ?? _categories.first;
+    final inv = r['invoiceNumber']?.toString() ?? '';
+    final base = (r['baseAmount'] as num?)?.toDouble() ?? 0.0;
+    final vat = (r['vatAmount'] as num?)?.toDouble() ?? 0.0;
+    final tot = (r['totalAmount'] as num?)?.toDouble() ?? (base + vat);
+    final att = r['attachmentName']?.toString();
+    final dt = (r['invoiceDate'] as DateTime?) ?? DateTime.now();
+
+    final line = ExpenseLineItem(
+      id: _uuid.v4(),
+      date: dt,
+      category: cat,
+      invoiceNumber: inv,
+      baseAmount: base,
+      vatRatePercentage: 15.0,
+      vatAmount: vat,
+      totalAmount: tot,
+      attachmentName: att,
+      status: LineStatus.pending,
+    );
+    _lines.clear();
+    _lines.add(line);
+    _invoiceControllerFor(line).text = inv;
+    _amountControllerFor(line).text = base > 0 ? base.toStringAsFixed(2) : '';
+  }
+
+  Future<void> _startWithOcrScan() async {
+    final scannedData = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const OcrScannerScreen(),
+      ),
+    );
+    if (scannedData != null && scannedData is Map<String, dynamic> && mounted) {
+      setState(() {
+        _applyScannedReceiptToNewClaim(scannedData);
+        _hasChosenEntryMode = true;
+      });
     }
   }
 
@@ -137,9 +197,12 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
       );
       return;
     }
+    final removedId = _lines[index].id;
     setState(() {
       _lines.removeAt(index);
     });
+    _invoiceControllers?.remove(removedId)?.dispose();
+    _amountControllers?.remove(removedId)?.dispose();
   }
 
   void _updateLine(int index, ExpenseLineItem updated) {
@@ -175,17 +238,21 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
         _descController.text = scannedData['justification'].toString();
       }
 
+      final updatedLine = _lines[index].copyWith(
+        category: scannedData['category'] ?? _lines[index].category,
+        invoiceNumber: scannedData['invoiceNumber'] ?? _lines[index].invoiceNumber,
+        date: scannedData['invoiceDate'] ?? _lines[index].date,
+        baseAmount: base,
+        vatRatePercentage: vatRate,
+        vatAmount: vat,
+        totalAmount: total,
+        attachmentName: scannedData['attachmentName'] ?? 'scanned_receipt.jpg',
+      );
+      _invoiceControllerFor(updatedLine).text = updatedLine.invoiceNumber;
+      _amountControllerFor(updatedLine).text =
+          updatedLine.baseAmount > 0 ? updatedLine.baseAmount.toStringAsFixed(2) : '';
       setState(() {
-        _lines[index] = _lines[index].copyWith(
-          category: scannedData['category'] ?? _lines[index].category,
-          invoiceNumber: scannedData['invoiceNumber'] ?? _lines[index].invoiceNumber,
-          date: scannedData['invoiceDate'] ?? _lines[index].date,
-          baseAmount: base,
-          vatRatePercentage: vatRate,
-          vatAmount: vat,
-          totalAmount: total,
-          attachmentName: scannedData['attachmentName'] ?? 'scanned_receipt.jpg',
-        );
+        _lines[index] = updatedLine;
       });
 
       if (mounted) {
@@ -322,10 +389,19 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
               if (Navigator.canPop(context)) {
                 Navigator.pop(context);
               } else {
+                for (final c in (_invoiceControllers?.values ?? const <TextEditingController>[])) {
+                  c.dispose();
+                }
+                for (final c in (_amountControllers?.values ?? const <TextEditingController>[])) {
+                  c.dispose();
+                }
+                _invoiceControllers?.clear();
+                _amountControllers?.clear();
                 setState(() {
                   _docRefNumber = 'EXP-2026-${(100 + DateTime.now().microsecond % 900)}';
                   _descController.clear();
                   _lines.clear();
+                  _hasChosenEntryMode = false;
                 });
                 _addNewBlankLine();
               }
@@ -357,8 +433,203 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
     );
   }
 
+  Widget _buildEntrySelectorView(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'NEW EXPENSE CLAIM',
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.textMuted,
+              letterSpacing: 1.0,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'How would you like to start?',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF0F172A),
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          // Primary Recommended Option: AI OCR Scan / Upload Document
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFFFFFFFD),
+                  Color(0xFFFEF8EC),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFFFEF08A).withValues(alpha: 0.65),
+                width: 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFFD97706).withValues(alpha: 0.10),
+                  blurRadius: 18,
+                  offset: const Offset(0, 6),
+                ),
+                BoxShadow(
+                  color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+                  blurRadius: 6,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(13),
+                      ),
+                      child: const Icon(
+                        Icons.document_scanner_rounded,
+                        color: Color(0xFF2563EB),
+                        size: 24,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFDBEAFE),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text(
+                        'Recommended • Auto-Fill',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFF1D4ED8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'AI OCR Scan or Upload Document',
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF0F172A),
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Take a photo or upload a PDF/image invoice. Merchant, Invoice #, Date, Category, and 15% ZATCA VAT will be extracted and pre-filled automatically.',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: Color(0xFF475569),
+                    height: 1.45,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: const Icon(Icons.camera_alt_outlined, size: 19),
+                    label: const Text(
+                      'Scan or Upload Document',
+                      style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800),
+                    ),
+                    onPressed: _startWithOcrScan,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Divider
+          const Row(
+            children: [
+              Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 14),
+                child: Text(
+                  'OR',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF94A3B8),
+                    letterSpacing: 1.0,
+                  ),
+                ),
+              ),
+              Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // Secondary Option: Manual Entry
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                backgroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 16),
+                side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.2),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              icon: const Icon(Icons.edit_note_rounded, size: 22, color: Color(0xFF334155)),
+              label: const Text(
+                'Enter Details Manually',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+              onPressed: () {
+                setState(() {
+                  _hasChosenEntryMode = true;
+                });
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_hasChosenEntryMode == false) {
+      return _buildEntrySelectorView(context);
+    }
+
     final provider = context.watch<ClaimDeskProvider>();
     final vatRate = provider.configuredVatPercentage;
 
@@ -637,7 +908,7 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
 
   Widget _buildLineItemCard(int index, ExpenseLineItem line, double configuredVat) {
     return Card(
-      key: ValueKey('line_${line.id}_${line.category}_${line.invoiceNumber}_${line.baseAmount}'),
+      key: ValueKey('line_${line.id}'),
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -733,7 +1004,8 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextFormField(
-                    initialValue: line.invoiceNumber,
+                    controller: _invoiceControllerFor(line),
+                    textInputAction: TextInputAction.next,
                     style: const TextStyle(color: AppTheme.textPrimary),
                     decoration: const InputDecoration(labelText: 'Invoice #'),
                     onChanged: (val) {
@@ -750,15 +1022,17 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
               children: [
                 Expanded(
                   child: TextFormField(
-                    initialValue: line.baseAmount > 0 ? line.baseAmount.toStringAsFixed(2) : '',
+                    controller: _amountControllerFor(line),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    textInputAction: TextInputAction.done,
                     style: const TextStyle(color: AppTheme.textPrimary),
                     decoration: const InputDecoration(
                       labelText: 'Base Amount (SAR)',
                       prefixText: 'SAR ',
                     ),
                     onChanged: (val) {
-                      final base = double.tryParse(val) ?? 0.0;
+                      final cleaned = val.replaceAll(',', '.').trim();
+                      final base = double.tryParse(cleaned) ?? 0.0;
                       final vat = (base * configuredVat) / 100.0;
                       final total = base + vat;
                       _updateLine(

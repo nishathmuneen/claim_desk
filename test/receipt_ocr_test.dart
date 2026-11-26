@@ -82,4 +82,45 @@ void main() {
     expect(find.text('217.39'), findsOneWidget);
     expect(find.textContaining('250.00'), findsWidgets);
   });
+
+  testWidgets('NewClaimScreen allows smooth typing in Invoice # and Base Amount without focus loss',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ClaimDeskProvider()),
+        ],
+        child: const MaterialApp(
+          home: Scaffold(
+            body: NewClaimScreen(),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Verify Scan-First starter screen appears first with manual option
+    expect(find.text('Scan or Upload Document'), findsOneWidget);
+    expect(find.text('Enter Details Manually'), findsOneWidget);
+
+    await tester.tap(find.text('Enter Details Manually'));
+    await tester.pumpAndSettle();
+
+    final invoiceField = find.widgetWithText(TextFormField, 'Invoice #');
+    await tester.ensureVisible(invoiceField);
+    await tester.tap(invoiceField);
+    await tester.enterText(invoiceField, 'INV-9988');
+    await tester.pump();
+    expect(find.text('INV-9988'), findsOneWidget);
+
+    final amountField = find.widgetWithText(TextFormField, 'Base Amount (SAR)');
+    await tester.ensureVisible(amountField);
+    await tester.tap(amountField);
+    await tester.enterText(amountField, '100.50');
+    await tester.pump();
+
+    expect(find.text('100.50'), findsOneWidget);
+    expect(find.textContaining('115.58'), findsWidgets);
+  });
 }

@@ -203,6 +203,310 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildSmartActionBanner(BuildContext context, int actionNeededCount) {
+    return InkWell(
+      onTap: () => onNavigateTab(2),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFEF2F2),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFFFCA5A5),
+            width: 1.0,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFDC2626).withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.assignment_late_rounded, color: Color(0xFFDC2626), size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$actionNeededCount Claim${actionNeededCount > 1 ? "s" : ""} Require${actionNeededCount == 1 ? "s" : ""} Attention',
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF991B1B),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'Query raised by AP Finance • Tap to resolve and resubmit',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: Color(0xFFB91C1C),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 13, color: Color(0xFFDC2626)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExecutiveActionGrid(BuildContext context, ClaimDeskProvider provider) {
+    return Row(
+      children: [
+        Expanded(
+          child: _executiveActionTile(
+            context: context,
+            title: 'AI OCR Scan',
+            subtitle: 'Extract receipt data',
+            icon: Icons.document_scanner_rounded,
+            iconColor: const Color(0xFF2563EB),
+            iconBg: const Color(0xFFEFF6FF),
+            badgeText: 'Auto VAT',
+            badgeColor: const Color(0xFF1D4ED8),
+            badgeBg: const Color(0xFFDBEAFE),
+            onTap: () async {
+              final scannedData = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const OcrScannerScreen(),
+                ),
+              );
+              if (scannedData != null && scannedData is Map<String, dynamic> && context.mounted) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => NewClaimScreen(initialScannedReceipt: scannedData),
+                  ),
+                );
+              }
+            },
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _executiveActionTile(
+            context: context,
+            title: 'Request Refill',
+            subtitle: 'Card balance top-up',
+            icon: Icons.bolt_rounded,
+            iconColor: const Color(0xFF059669),
+            iconBg: const Color(0xFFECFDF5),
+            badgeText: 'AP Direct',
+            badgeColor: const Color(0xFF047857),
+            badgeBg: const Color(0xFFD1FAE5),
+            onTap: () {
+              if (!provider.activeUser.hasActiveCard) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Card balance refill requests are only available for active card custodians.'),
+                    backgroundColor: AppTheme.navyDark,
+                  ),
+                );
+              } else {
+                _showRefillModal(context, provider);
+              }
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _executiveActionTile({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBg,
+    required String badgeText,
+    required Color badgeBg,
+    required Color badgeColor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFFFFFFD),
+              Color(0xFFFEF8EC),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: const Color(0xFFFEF08A).withValues(alpha: 0.45),
+            width: 0.8,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFD97706).withValues(alpha: 0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+            BoxShadow(
+              color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+              blurRadius: 6,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: iconBg,
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  child: Icon(icon, color: iconColor, size: 20),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                  decoration: BoxDecoration(
+                    color: badgeBg,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    badgeText,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      color: badgeColor,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 14.0,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF0F172A),
+                letterSpacing: -0.2,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 3),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF475569),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCardUtilitiesBar(BuildContext context, ClaimDeskProvider provider) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFFEF08A).withValues(alpha: 0.45),
+          width: 0.8,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFD97706).withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _utilityPill(
+            icon: Icons.credit_card_outlined,
+            label: 'Card Data',
+            onTap: () => _showCardDetailsModal(context, provider),
+          ),
+          Container(height: 20, width: 1, color: const Color(0xFFE2E8F0)),
+          _utilityPill(
+            icon: Icons.badge_outlined,
+            label: provider.activeUser.hasActiveCard ? 'Update KYC' : 'Apply for Card',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CardApplicationScreen()),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _utilityPill({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: const Color(0xFF475569)),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 12.0,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF334155),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ClaimDeskProvider>();
@@ -242,200 +546,13 @@ class DashboardScreen extends StatelessWidget {
               const SizedBox(height: 16),
             ],
 
-            // Section: Financial Overview (Bento Grid KPIs)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'FINANCIAL OVERVIEW',
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF0F172A),
-                    letterSpacing: 0.8,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3.5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFEFF4FF),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFBFDBFE), width: 1.0),
-                  ),
-                  child: const Text(
-                    'Live Ledger',
-                    style: TextStyle(
-                      fontSize: 11.0,
-                      fontWeight: FontWeight.w800,
-                      color: AppTheme.infoBlue,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
+            // Context-Aware Smart Action Banner (Shows ONLY when attention is needed)
+            if (provider.actionNeededCount > 0) ...[
+              _buildSmartActionBanner(context, provider.actionNeededCount),
+              const SizedBox(height: 16),
+            ],
 
-            // 2x2 Executive Bento Grid for Financial Overview
-            Row(
-              children: [
-                Expanded(
-                  child: _aestheticKpiCard(
-                    title: 'AVAILABLE CASH',
-                    currency: 'SAR',
-                    value: activeCard.currentBalance.toStringAsFixed(0),
-                    subtitle: 'Monthly Cap: SAR ${activeCard.monthlyLimit.toStringAsFixed(0)}',
-                    icon: Icons.account_balance_wallet_rounded,
-                    iconBg: const Color(0xFFECFDF5),
-                    iconColor: const Color(0xFF059669),
-                    valueColor: activeCard.isLowBalance ? AppTheme.primaryOrange : const Color(0xFF0F172A),
-                    badgeText: activeCard.isLowBalance ? '91% Consumed' : 'Pre-Funded',
-                    badgeBg: activeCard.isLowBalance ? const Color(0xFFFEF2F2) : const Color(0xFFECFDF5),
-                    badgeColor: activeCard.isLowBalance ? const Color(0xFFDC2626) : const Color(0xFF059669),
-                    progress: activeCard.monthlyLimit > 0
-                        ? (activeCard.currentBalance / activeCard.monthlyLimit).clamp(0.0, 1.0)
-                        : 0.0,
-                    onTap: () => _showCardDetailsModal(context, provider),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _aestheticKpiCard(
-                    title: 'IN-REVIEW POOL',
-                    currency: 'SAR',
-                    value: provider.claims
-                        .where((c) => c.status == ClaimStatus.submitted)
-                        .fold(0.0, (s, c) => s + c.grandTotal)
-                        .toStringAsFixed(0),
-                    subtitle: '${provider.inApprovalCount} claims in approval',
-                    icon: Icons.hourglass_top_rounded,
-                    iconBg: const Color(0xFFEFF6FF),
-                    iconColor: const Color(0xFF2563EB),
-                    valueColor: const Color(0xFF2563EB),
-                    badgeText: 'Under SLA',
-                    badgeBg: const Color(0xFFEFF6FF),
-                    badgeColor: const Color(0xFF2563EB),
-                    onTap: () => onNavigateTab(3),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _aestheticKpiCard(
-                    title: 'SETTLED (MTD)',
-                    currency: 'SAR',
-                    value: provider.claims
-                        .where((c) => c.status == ClaimStatus.approved || c.status == ClaimStatus.fullyClosed)
-                        .fold(0.0, (s, c) => s + c.grandTotal)
-                        .toStringAsFixed(0),
-                    subtitle: 'ZATCA Reconciled',
-                    icon: Icons.verified_user_rounded,
-                    iconBg: const Color(0xFFF1F5F9),
-                    iconColor: const Color(0xFF1E2B45),
-                    valueColor: const Color(0xFF0F172A),
-                    badgeText: 'This Month',
-                    badgeBg: const Color(0xFFF1F5F9),
-                    badgeColor: const Color(0xFF475569),
-                    onTap: () => onNavigateTab(3),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _aestheticKpiCard(
-                    title: 'APPROVAL SLA',
-                    currency: '',
-                    value: '~1.8 Days',
-                    subtitle: '4-Tier Governance',
-                    icon: Icons.speed_rounded,
-                    iconBg: const Color(0xFFF0FDFA),
-                    iconColor: const Color(0xFF0D9488),
-                    valueColor: const Color(0xFF0D9488),
-                    badgeText: 'Fast Track',
-                    badgeBg: const Color(0xFFF0FDFA),
-                    badgeColor: const Color(0xFF0D9488),
-                    onTap: null,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 18),
-
-            // Section: Claim Status Breakdown
-            const Text(
-              'CLAIM STATUS BREAKDOWN',
-              style: TextStyle(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF0F172A),
-                letterSpacing: 0.8,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: _statusKpiTile(
-                    title: 'Drafts',
-                    count: '${provider.draftsCount}',
-                    subtitle: 'Unsubmitted lines',
-                    icon: Icons.edit_note_rounded,
-                    iconColor: const Color(0xFF475569),
-                    iconBg: const Color(0xFFF1F5F9),
-                    pillText: 'Editable',
-                    onTap: () => onNavigateTab(3),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _statusKpiTile(
-                    title: 'In Approval',
-                    count: '${provider.inApprovalCount}',
-                    subtitle: 'Active 4-stage review',
-                    icon: Icons.hourglass_top_rounded,
-                    iconColor: const Color(0xFF2563EB),
-                    iconBg: const Color(0xFFEFF6FF),
-                    pillText: 'L1 - L4 AP',
-                    onTap: () => onNavigateTab(3),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _statusKpiTile(
-                    title: 'Action Needed',
-                    count: '${provider.actionNeededCount}',
-                    subtitle: 'Query / rejection',
-                    icon: Icons.assignment_late_rounded,
-                    iconColor: const Color(0xFFDC2626),
-                    iconBg: const Color(0xFFFEF2F2),
-                    pillText: provider.actionNeededCount > 0 ? 'Resolve Now' : 'Clear',
-                    highlight: provider.actionNeededCount > 0,
-                    onTap: () => onNavigateTab(2),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _statusKpiTile(
-                    title: 'Fully Closed',
-                    count: '${provider.fullyClosedCount}',
-                    subtitle: 'Disbursed & SAP posted',
-                    icon: Icons.lock_clock_rounded,
-                    iconColor: const Color(0xFF7C3AED),
-                    iconBg: const Color(0xFFF5F3FF),
-                    pillText: 'Archived',
-                    onTap: () => onNavigateTab(3),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // Section: Quick Actions Grid
+            // Section Header: Quick Actions
             const Text(
               'QUICK ACTIONS',
               style: TextStyle(
@@ -446,163 +563,14 @@ class DashboardScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('New Claim', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
-                    onPressed: () {
-                      if (!provider.activeUser.hasActiveCard) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Expense claiming is locked until your corporate card is approved and active.'),
-                            backgroundColor: AppTheme.navyDark,
-                          ),
-                        );
-                      } else {
-                        onNavigateTab(1);
-                      }
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: const BorderSide(color: AppTheme.primaryOrange, width: 1.4),
-                      foregroundColor: AppTheme.primaryOrange,
-                    ),
-                    icon: const Icon(Icons.document_scanner, size: 18),
-                    label: const Text('AI OCR Scan', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
-                    onPressed: () async {
-                      final scannedData = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const OcrScannerScreen(),
-                        ),
-                      );
-                      if (scannedData != null && scannedData is Map<String, dynamic> && context.mounted) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => NewClaimScreen(initialScannedReceipt: scannedData),
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                      side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
-                    ),
-                    icon: const Icon(Icons.badge_outlined, size: 17),
-                    label: const Text('Apply for Card', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const CardApplicationScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                      side: const BorderSide(color: Color(0xFFE2E8F0), width: 1.0),
-                    ),
-                    icon: const Icon(Icons.bolt, size: 17, color: AppTheme.primaryOrange),
-                    label: const Text('Request Refill', style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700)),
-                    onPressed: () {
-                      if (!provider.activeUser.hasActiveCard) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Card balance refill requests are only available for active card custodians.'),
-                            backgroundColor: AppTheme.navyDark,
-                          ),
-                        );
-                      } else {
-                        _showRefillModal(context, provider);
-                      }
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
 
-            // Section: Recent Claims
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'RECENT CLAIMS',
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF0F172A),
-                    letterSpacing: 0.8,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onNavigateTab(3),
-                  child: const Text(
-                    'View All',
-                    style: TextStyle(
-                      color: AppTheme.primaryOrange,
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
+            // Executive Action Hub: 2x2 Grid of Polished Action Cards
+            _buildExecutiveActionGrid(context, provider),
+            const SizedBox(height: 16),
 
-            if (claims.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.border),
-                ),
-                child: Column(
-                  children: [
-                    Icon(Icons.receipt_long_outlined, size: 38, color: AppTheme.textMuted.withValues(alpha: 0.6)),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'No Expense Claims Yet',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: AppTheme.textPrimary),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Claims will appear here once your corporate petty cash card is active and expenses are submitted.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 11.5, color: AppTheme.textSecondary),
-                    ),
-                  ],
-                ),
-              )
-            else
-              ...claims.take(4).map((claim) => _recentClaimTile(context, claim)),
+            // Card Utilities Bar (Details, Application, Filter)
+            _buildCardUtilitiesBar(context, provider),
+            const SizedBox(height: 16),
           ],
         ),
       ),
