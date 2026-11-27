@@ -15,6 +15,11 @@ enum LineStatus {
   rejected,
 }
 
+enum PaymentSource {
+  cardSwipe,
+  cashAdvance,
+}
+
 class ExpenseLineItem {
   final String id;
   final DateTime date;
@@ -29,6 +34,9 @@ class ExpenseLineItem {
   final LineStatus status;
   final String? rejectionComment; // Mandatory if rejected
   final bool isResubmitted;
+  final PaymentSource paymentSource;
+  final String? statementTxId;
+  final String? beneficiaryEmployeeId;
 
   const ExpenseLineItem({
     required this.id,
@@ -44,6 +52,9 @@ class ExpenseLineItem {
     this.status = LineStatus.pending,
     this.rejectionComment,
     this.isResubmitted = false,
+    this.paymentSource = PaymentSource.cardSwipe,
+    this.statementTxId,
+    this.beneficiaryEmployeeId,
   });
 
   ExpenseLineItem copyWith({
@@ -60,6 +71,9 @@ class ExpenseLineItem {
     LineStatus? status,
     String? rejectionComment,
     bool? isResubmitted,
+    PaymentSource? paymentSource,
+    String? statementTxId,
+    String? beneficiaryEmployeeId,
   }) {
     return ExpenseLineItem(
       id: id ?? this.id,
@@ -75,6 +89,9 @@ class ExpenseLineItem {
       status: status ?? this.status,
       rejectionComment: rejectionComment ?? this.rejectionComment,
       isResubmitted: isResubmitted ?? this.isResubmitted,
+      paymentSource: paymentSource ?? this.paymentSource,
+      statementTxId: statementTxId ?? this.statementTxId,
+      beneficiaryEmployeeId: beneficiaryEmployeeId ?? this.beneficiaryEmployeeId,
     );
   }
 }

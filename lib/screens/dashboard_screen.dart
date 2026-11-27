@@ -14,6 +14,7 @@ import 'ocr_scanner_screen.dart';
 import 'card_application_screen.dart';
 import 'new_claim_screen.dart';
 import 'claim_details_screen.dart';
+import 'reconciliation_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   final Function(int) onNavigateTab;
@@ -469,6 +470,17 @@ class DashboardScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const CardApplicationScreen()),
+              );
+            },
+          ),
+          Container(height: 20, width: 1, color: const Color(0xFFE2E8F0)),
+          _utilityPill(
+            icon: Icons.balance_rounded,
+            label: 'Reconcile',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ReconciliationScreen()),
               );
             },
           ),

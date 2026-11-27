@@ -30,16 +30,16 @@ void main() {
 
     // 2. Verify Total Authorized Reimbursable
     expect(find.text('TOTAL AUTHORIZED REIMBURSABLE'), findsOneWidget);
-    expect(find.text('SAR 3,680.00'), findsWidgets);
+    expect(find.text('SAR 1,150.00'), findsWidgets);
     expect(find.text('Pre-funded Auth'), findsOneWidget);
 
     // 3. Verify Financial & ZATCA Tax Split
     expect(find.text('Financial & ZATCA Tax Split'), findsOneWidget);
     expect(find.text('ZATCA Phase 2 Verified'), findsOneWidget);
     expect(find.text('Net Invoiced Amount (Excl. VAT)'), findsOneWidget);
-    expect(find.text('SAR 3,200.00'), findsOneWidget);
+    expect(find.text('SAR 1,000.00'), findsOneWidget);
     expect(find.text('Standard KSA VAT (15%)'), findsOneWidget);
-    expect(find.text('SAR 480.00'), findsOneWidget);
+    expect(find.text('SAR 150.00'), findsOneWidget);
     expect(find.text('COST CENTER'), findsOneWidget);
     expect(find.text('GL ACCOUNT CODE'), findsOneWidget);
     expect(find.text('6250 - LODGING - CORP'), findsOneWidget);

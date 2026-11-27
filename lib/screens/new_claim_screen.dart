@@ -310,6 +310,9 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
       return;
     }
 
+    final provider = context.read<ClaimDeskProvider>();
+    final seenInvoices = <String>{};
+
     for (int i = 0; i < _lines.length; i++) {
       final line = _lines[i];
       if (line.baseAmount <= 0) {
@@ -321,7 +324,8 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
         );
         return;
       }
-      if (line.invoiceNumber.trim().isEmpty) {
+      final inv = line.invoiceNumber.trim();
+      if (inv.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Line #${i + 1} is missing Invoice/Receipt Number'),
@@ -330,9 +334,18 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
         );
         return;
       }
+      if (!seenInvoices.add(inv.toLowerCase()) ||
+          provider.isDuplicateInvoice(inv, excludeClaimId: widget.initialDraft?.id)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Duplicate Invoice # detected ($inv). Each invoice can only be claimed once.'),
+            backgroundColor: AppTheme.dangerRed,
+          ),
+        );
+        return;
+      }
     }
 
-    final provider = context.read<ClaimDeskProvider>();
     final claim = ExpenseClaim(
       id: widget.initialDraft?.id ?? _uuid.v4(),
       docRefNumber: _docRefNumber,
@@ -1074,7 +1087,38 @@ class _NewClaimScreenState extends State<NewClaimScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
+
+            // Payment Source Selector (Card Swipe vs Cash Advance)
+            Row(
+              children: [
+                const Text(
+                  'Payment Source:',
+                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textSecondary),
+                ),
+                const SizedBox(width: 8),
+                ChoiceChip(
+                  label: const Text('Card Swipe', style: TextStyle(fontSize: 11)),
+                  selected: line.paymentSource == PaymentSource.cardSwipe,
+                  selectedColor: const Color(0xFFFEF3C7),
+                  onSelected: (_) {
+                    _updateLine(index, line.copyWith(paymentSource: PaymentSource.cardSwipe));
+                  },
+                  visualDensity: VisualDensity.compact,
+                ),
+                const SizedBox(width: 6),
+                ChoiceChip(
+                  label: const Text('Cash Advance', style: TextStyle(fontSize: 11)),
+                  selected: line.paymentSource == PaymentSource.cashAdvance,
+                  selectedColor: const Color(0xFFDBEAFE),
+                  onSelected: (_) {
+                    _updateLine(index, line.copyWith(paymentSource: PaymentSource.cashAdvance));
+                  },
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
 
             // Attachment Status
             Row(

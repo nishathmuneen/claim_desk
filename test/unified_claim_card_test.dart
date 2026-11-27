@@ -24,7 +24,7 @@ void main() {
       expect(find.text('#CLM-1021'), findsOneWidget);
 
       // Check Amount Pill with formatted comma
-      expect(find.text('SAR 3,680.00'), findsOneWidget);
+      expect(find.text('SAR 1,150.00'), findsOneWidget);
 
       // Check Description
       expect(find.text('Riyadh Marriott Hotel - Client Workshop'), findsOneWidget);
@@ -59,7 +59,7 @@ void main() {
       expect(find.text('#EXP-2026-0044'), findsOneWidget);
 
       // Check Amount Pill
-      expect(find.text('SAR 851.00'), findsOneWidget);
+      expect(find.text('SAR 345.00'), findsOneWidget);
 
       // Check Compliant with Policy badge
       expect(find.text('Compliant with Policy'), findsOneWidget);

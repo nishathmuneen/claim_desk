@@ -8,6 +8,9 @@ import 'dashboard_screen.dart';
 import 'new_claim_screen.dart';
 import 'resubmission_screen.dart';
 import 'claims_history_screen.dart';
+import 'approval_queue_screen.dart';
+import 'sap_posting_screen.dart';
+import 'reconciliation_screen.dart';
 
 class MainShell extends StatefulWidget {
   final int initialIndex;
@@ -37,22 +40,124 @@ class _MainShellState extends State<MainShell> {
   Widget build(BuildContext context) {
     final provider = context.watch<ClaimDeskProvider>();
     final actionNeededCount = provider.actionNeededCount;
+    final activeRole = provider.activeRole;
 
-    final screens = [
-      DashboardScreen(onNavigateTab: _onTabSelected),
-      const NewClaimScreen(),
-      const ResubmissionScreen(),
-      const ClaimsHistoryScreen(),
-    ];
+    late final List<Widget> screens;
+    late final List<Widget> navTabs;
+
+    if (activeRole == 'Approver') {
+      screens = const [
+        ApprovalQueueScreen(),
+        ReconciliationScreen(),
+        ClaimsHistoryScreen(),
+      ];
+      final safeIndex = _currentIndex.clamp(0, screens.length - 1);
+      navTabs = [
+        _buildNavTab(
+          index: 0,
+          label: 'Approvals',
+          unselectedIcon: Icons.fact_check_outlined,
+          selectedIcon: Icons.fact_check_rounded,
+          isSelected: safeIndex == 0,
+          badgeCount: provider.pendingApprovalClaims.length,
+        ),
+        _buildNavTab(
+          index: 1,
+          label: 'Reconcile',
+          unselectedIcon: Icons.balance_outlined,
+          selectedIcon: Icons.balance_rounded,
+          isSelected: safeIndex == 1,
+        ),
+        _buildNavTab(
+          index: 2,
+          label: 'All Claims',
+          unselectedIcon: Icons.layers_outlined,
+          selectedIcon: Icons.layers_rounded,
+          isSelected: safeIndex == 2,
+        ),
+      ];
+    } else if (activeRole == 'Finance / AP') {
+      screens = const [
+        SapPostingScreen(),
+        ReconciliationScreen(),
+        ClaimsHistoryScreen(),
+      ];
+      final safeIndex = _currentIndex.clamp(0, screens.length - 1);
+      navTabs = [
+        _buildNavTab(
+          index: 0,
+          label: 'SAP & Refills',
+          unselectedIcon: Icons.account_balance_outlined,
+          selectedIcon: Icons.account_balance_rounded,
+          isSelected: safeIndex == 0,
+          badgeCount: provider.approvedPendingSapClaims.length,
+        ),
+        _buildNavTab(
+          index: 1,
+          label: 'Reconcile',
+          unselectedIcon: Icons.balance_outlined,
+          selectedIcon: Icons.balance_rounded,
+          isSelected: safeIndex == 1,
+        ),
+        _buildNavTab(
+          index: 2,
+          label: 'All Claims',
+          unselectedIcon: Icons.layers_outlined,
+          selectedIcon: Icons.layers_rounded,
+          isSelected: safeIndex == 2,
+        ),
+      ];
+    } else {
+      screens = [
+        DashboardScreen(onNavigateTab: _onTabSelected),
+        const NewClaimScreen(),
+        const ResubmissionScreen(),
+        const ClaimsHistoryScreen(),
+      ];
+      final safeIndex = _currentIndex.clamp(0, screens.length - 1);
+      navTabs = [
+        _buildNavTab(
+          index: 0,
+          label: 'Dashboard',
+          unselectedIcon: Icons.home_outlined,
+          selectedIcon: Icons.home_rounded,
+          isSelected: safeIndex == 0,
+        ),
+        _buildNavTab(
+          index: 1,
+          label: 'New Claim',
+          unselectedIcon: Icons.add_circle_outline_rounded,
+          selectedIcon: Icons.add_circle_rounded,
+          isSelected: safeIndex == 1,
+        ),
+        _buildNavTab(
+          index: 2,
+          label: 'Action Needed',
+          unselectedIcon: Icons.fact_check_outlined,
+          selectedIcon: Icons.fact_check_rounded,
+          isSelected: safeIndex == 2,
+          badgeCount: actionNeededCount,
+        ),
+        _buildNavTab(
+          index: 3,
+          label: 'My Claims',
+          unselectedIcon: Icons.layers_outlined,
+          selectedIcon: Icons.layers_rounded,
+          isSelected: safeIndex == 3,
+        ),
+      ];
+    }
+
+    final safeIndex = _currentIndex.clamp(0, screens.length - 1);
 
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: ClaimDeskAppHeader(
-        onNotificationTap: () => _onTabSelected(2), // Jump to Action Needed tab
+        onNotificationTap: () => _onTabSelected(activeRole == 'User / Custodian' ? 2 : 0),
       ),
       body: KineticBackground(
         child: IndexedStack(
-          index: _currentIndex,
+          index: safeIndex,
           children: screens,
         ),
       ),
@@ -86,37 +191,7 @@ class _MainShellState extends State<MainShell> {
             ),
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
             child: Row(
-              children: [
-                _buildNavTab(
-                  index: 0,
-                  label: 'Dashboard',
-                  unselectedIcon: Icons.home_outlined,
-                  selectedIcon: Icons.home_rounded,
-                  isSelected: _currentIndex == 0,
-                ),
-                _buildNavTab(
-                  index: 1,
-                  label: 'New Claim',
-                  unselectedIcon: Icons.add_circle_outline_rounded,
-                  selectedIcon: Icons.add_circle_rounded,
-                  isSelected: _currentIndex == 1,
-                ),
-                _buildNavTab(
-                  index: 2,
-                  label: 'Action Needed',
-                  unselectedIcon: Icons.fact_check_outlined,
-                  selectedIcon: Icons.fact_check_rounded,
-                  isSelected: _currentIndex == 2,
-                  badgeCount: actionNeededCount,
-                ),
-                _buildNavTab(
-                  index: 3,
-                  label: 'My Claims',
-                  unselectedIcon: Icons.layers_outlined,
-                  selectedIcon: Icons.layers_rounded,
-                  isSelected: _currentIndex == 3,
-                ),
-              ],
+              children: navTabs,
             ),
           ),
         ),
